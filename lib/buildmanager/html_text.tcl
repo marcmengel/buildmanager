@@ -5,7 +5,7 @@
 set html_tag_patttern 	 {^[ 	]*<(/?)([a-zA-Z]+)([^>]*)>} 
 set html_word_pattern 	 {^[ 	]*([^ 	<]+)} 
 set html_pre_pattern 	 {^[ 	]*<pre>}
-set html_end_pre_pattern {^[ 	]</pre>}
+set html_end_pre_pattern {^[ 	]*</pre>}
 
 # backwards compat with old tcl
 if [ catch "file join a b" ] {
@@ -71,13 +71,6 @@ proc html_insert_file { w file {anchor ""} {debug ""} } {
 		regsub -nocase $html_pre_pattern $line {} line
 		set formatting 0
 		html_do_pre $w "" ""
-	     } elseif { [regexp -nocase $html_tag_patttern $line match slash tag arg] } {
-		set tag [string tolower $tag]
-		html_debug "matched a <$slash$tag...> at [$w index insert]"
-		regsub -nocase $html_tag_patttern $line {} line
-		if { "html_do_$tag" == [info command "html_do_$tag"] } {
-		    html_do_$tag $w $slash $arg
-		}
 	     } elseif { [regexp -nocase $html_end_pre_pattern $line match upto] } {
 		 html_debug "matched a </pre> at [$w index insert]"
 		 regsub -nocase $html_end_pre_pattern $line {} line
@@ -88,6 +81,16 @@ proc html_insert_file { w file {anchor ""} {debug ""} } {
 		 $w insert insert "$upto" {}
 		 html_do_pre $w "/" ""
 		 set formatting 1
+	     } elseif { [regexp -nocase $html_tag_patttern $line match slash tag arg] } {
+	        if { "$tag" == "pre" } {
+		    puts "Ouch! matched pre in the wrong place..."
+                }
+		set tag [string tolower $tag]
+		html_debug "matched a <$slash$tag...> at [$w index insert]"
+		regsub -nocase $html_tag_patttern $line {} line
+		if { "html_do_$tag" == [info command "html_do_$tag"] } {
+		    html_do_$tag $w $slash $arg
+		}
 	     } elseif { [regexp -nocase $html_word_pattern $line match word ]} {
 		html_debug "matched a word >|$word|< at [$w index insert]"
 		regsub -nocase $html_word_pattern $line {} line
