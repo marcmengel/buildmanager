@@ -95,8 +95,7 @@ proc productroot { flavor } {
     if { "$flavor" == "Linux+2" } {
         return "/scratch/${product}-${version}-${flavor}"
     }
-    return
-"/usr/products/build-scratch/${product}-${version}-${flavor}"
+    return "/usr/products/build-scratch/${product}-${version}-${flavor}"
 }
 </pre>
 <pre>
