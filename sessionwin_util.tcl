@@ -38,15 +38,15 @@ proc rcvchars { w string } {
 	if { $sw_dat(verbose) } {puts "doing $w.v.t insert end $string"}
 
 	# collapse carriage-return/newline stuff before inserting
-	regsub -all "\r\n" $string "\n" insstring
-	regsub -all "\n\r" $string "\n" insstring
-	regsub -all "\r" $insstring "\n" insstring
+	regsub -all "\[\r\n\]+" $string "\n" string
 
-        if { "$string" == "\b" || "$string" == "\b \b" } {
-	    $w.v.t delete insert-1c
+        if { [ regexp "\b \b" $string ] } {
+            while { [ regsub "\b \b" $string {} string ] } {
+	         $w.v.t delete insert-1c
+	    }
 	} else {
 	    $w.v.t mark set insert end
-	    $w.v.t insert insert $insstring
+	    $w.v.t insert insert $string
 	}
 	$w.v.t see insert
 	append sw_dat(rcvd_buf,$w) $string
@@ -108,6 +108,57 @@ proc InitExpectText {} {
 	    bind ExpectText $sequence $action
 	}
     }
+
+    # xterm mouse button 2 emulation
+    #
+    bind ExpectText <<Paste>> 		{sendchars %W [selection get]}
+    bind ExpectText <ButtonRelease-2>	{sendchars %W [selection get]}
+
+    # vt100 keypad mode emulation
+    #
+    bind ExpectText <Key-BackSpace> 	{sendchars %W "\x7f"}
+    bind ExpectText <Key-Num_Lock> 	{sendchars %W "\x1bOP"}
+    bind ExpectText <Key-Up>		{sendchars %W "\x1b\[A"}
+    bind ExpectText <Key-Down>		{sendchars %W "\x1b\[B"}
+    bind ExpectText <Key-Right>		{sendchars %W "\x1b\[C"}
+    bind ExpectText <Key-Left>		{sendchars %W "\x1b\[D"}
+    bind ExpectText <KP_Divide>		{sendchars %W "\x1b\[OQ"}
+    bind ExpectText <KP_Multiply>	{sendchars %W "\x1b\[OR"}
+    bind ExpectText <KP_Subtract>	{sendchars %W "\x1b\[OS"}
+    bind ExpectText <KP_Add>		{sendchars %W "\x1b\[Om"}
+    bind ExpectText <Pause>		{sendchars %W "\x1b\[Ol"}
+    bind ExpectText <Print>		{sendchars %W "\x1b\[28~"}
+    bind ExpectText <Cancel>		{sendchars %W "\x1b\[29~"}
+    bind ExpectText <KP_0>		{sendcahrs %W "\x1bOp" }
+    bind ExpectText <KP_1>		{sendcahrs %W "\x1bOq" }
+    bind ExpectText <KP_2>		{sendcahrs %W "\x1bOr" }
+    bind ExpectText <KP_3>		{sendcahrs %W "\x1bOs" }
+    bind ExpectText <KP_4>		{sendcahrs %W "\x1bOt" }
+    bind ExpectText <KP_5>		{sendcahrs %W "\x1bOu" }
+    bind ExpectText <KP_6>		{sendcahrs %W "\x1bOv" }
+    bind ExpectText <KP_7>		{sendcahrs %W "\x1bOw" }
+    bind ExpectText <KP_8>		{sendcahrs %W "\x1bOx" }
+    bind ExpectText <KP_9>		{sendcahrs %W "\x1bOy" }
+    bind ExpectText <KP_Decimal>	{sendcahrs %W "\x1bOn" }
+    bind ExpectText <KP_Insert>		{sendcahrs %W "\x1b\[1~" }
+    bind ExpectText <KP_Home>		{sendcahrs %W "\x1b\[2~" }
+    bind ExpectText <KP_Prior>		{sendcahrs %W "\x1b\[3~" }
+    bind ExpectText <KP_Delete>		{sendcahrs %W "\x1b\[4~" }
+    bind ExpectText <KP_End>		{sendcahrs %W "\x1b\[5~" }
+    bind ExpectText <KP_Next>		{sendcahrs %W "\x1b\[6~" }
+    bind ExpectText <KP_Enter>		{sendcahrs %W "\x1bOM" }
+    bind ExpectText <F1>		{sendcahrs %W "\x1b\[17~" }
+    bind ExpectText <F2>		{sendcahrs %W "\x1b\[18~" }
+    bind ExpectText <F3>		{sendcahrs %W "\x1b\[19~" }
+    bind ExpectText <F4>		{sendcahrs %W "\x1b\[20~" }
+    bind ExpectText <F5>		{sendcahrs %W "\x1b\[21~" }
+    bind ExpectText <F6>		{sendcahrs %W "\x1b\[23~" }
+    bind ExpectText <F7>		{sendcahrs %W "\x1b\[24~" }
+    bind ExpectText <F8>		{sendcahrs %W "\x1b\[25~" }
+    bind ExpectText <F9>		{sendcahrs %W "\x1b\[26~" }
+    bind ExpectText <F10>		{sendcahrs %W "\x1b\[28~" }
+    bind ExpectText <F11>		{sendcahrs %W "\x1b\[29~" }
+    bind ExpectText <F12>		{sendcahrs %W "\x1b\[31~" }
 }
 
 proc sessionwin { w host } {

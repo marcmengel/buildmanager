@@ -31,7 +31,7 @@ if {![winfo exists $w.v.sb]} {scrollbar $w.v.sb}
 
 # ---------------- Text  $w.v.t ---------------------
 if {![winfo exists $w.v.t]} {text $w.v.t}
- $w.v.t configure -height "5" -width "80" -yscrollcommand "$w.v.sb set"
+ $w.v.t configure -height 10 -width "80" -yscrollcommand "$w.v.sb set"
 catch "$w.v.t tag add sel"
  $w.v.t tag configure sel -background "#c3c3c3" -borderwidth "1" -foreground "Black" -relief "raised"
 

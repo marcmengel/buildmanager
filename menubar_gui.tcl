@@ -11,24 +11,6 @@ if {![winfo exists $w.m4]} {menubutton $w.m4}
 # ---------------- Menu  $w.m4.m ---------------------
 if {![winfo exists $w.m4.m]} {menu $w.m4.m}
 catch "$w.m4.m add tearoff "
-catch "$w.m4.m add command "
- $w.m4.m entryconfigure 1 -command "menu_cd" -label "cd to build area"
-catch "$w.m4.m add command "
- $w.m4.m entryconfigure 2 -command "menu_checkout" -label "cvs checkout"
-catch "$w.m4.m add command "
- $w.m4.m entryconfigure 3 -command "menu_make declare 1" -label "make declare"
-catch "$w.m4.m add command "
- $w.m4.m entryconfigure 4 -command "menu_setup_product" -label "setup"
-catch "$w.m4.m add command "
- $w.m4.m entryconfigure 5 -command "menu_make all" -label "make all"
-catch "$w.m4.m add command "
- $w.m4.m entryconfigure 6 -command "menu_make test" -label "make test"
-catch "$w.m4.m add command "
- $w.m4.m entryconfigure 7 -command "menu_make \$releasetarget" -label "release"
-catch "$w.m4.m add command "
- $w.m4.m entryconfigure 8 -command "menu_exit" -label "Exit"
-catch "$w.m4.m add command "
- $w.m4.m entryconfigure 9 -command "menu_make clean" -label "make clean"
 
 # ---------------- Menubutton  $w.m5 ---------------------
 if {![winfo exists $w.m5]} {menubutton $w.m5}
