@@ -71,7 +71,7 @@ VERSIONFILES=Makefile README
 all: proddir_is_set
 	chmod -R a+r .
 	chmod -R g+w .
-	chmod 775 buildmanager
+	chmod 775 bin/buildmanager
 
 clean: 					 # clean up unneeded files	#
 
