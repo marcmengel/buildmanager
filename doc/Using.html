@@ -1,142 +1,138 @@
-<html>
-<head>
-<title>Using the buildmanager application build coordinator</title>
-</head>
-<body>
-<a href="buildmanager.html">Back</a> to documentaton overview
-<hline>
-<h1> Using the <tt>buildmanager</tt> application build coordinator </h1>
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
+<HTML>
+<HEAD>
+   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
+   <META NAME="GENERATOR" CONTENT="Mozilla/4.06 [en] (X11; I; Linux 2.0.35 i686) [Netscape]">
+   <TITLE>Using the buildmanager application build coordinator</TITLE>
+</HEAD>
+<BODY>
+<A HREF="buildmanager.html">Back</A>
+to documentaton overview<hline>
+<H1>
+Using the <TT>buildmanager</TT> application build coordinator</H1>
 
-<h2>Introduction</h2>
-
-The <tt>buildmanager</tt> application build coordinator is a flexible,
-configurable, tool which lets you build software on multiple systems
-simultaneouosly, in an organized and consistent fashion.  
-It allows you to set up standardized build sequences and actions
-which will be performed automatically, stop if/when things go wrong, 
-and allows interaction with various build systems to correct problems.
-It is implemented in expectk, which combines the <b>expect</b> package
-for working with interactive programs with the <b>Tk</b> windowing toolkit
-and the <b>Tcl</b> scripting langauge.
-Any system you can telnet to and run commands on can be used as a
-build system with buildmanager.
-
-<h2>Starting buildmanager</h2>
-
-At Fermilab, buildmanager is provided as a <b>ups</b> product, so before
-you can use it, you need to issue the command <tt>setup buildmanager</tt>
-to set the appropriate environment variables, etc.
-Since buildmanager uses the X Window system for displays, you need to be
-sitting at an X window terminal when you start it.
-Once these prerequisites are set, you can invoke buildmanager simply by 
-saying <tt>buildmanager</tt> at your shell prompt.
-
-<h2>Initial screens</h2>
-
-Two buildmanager windows should appear on your X Window display; 
-a login window:<br>
-<img src="loginwin.gif" alt="partial screen image"><br>
-and an interaction window:<br>
-<img src="loginwin2.gif" alt="partial screen image"><br>
-<p>
-The login window has an entry area for your login and password  on the
-build systems, and a button labeled <b>Dismiss</b>.  If you were to press 
-return in the password entry field, or the <b>Dismiss</b> button, 
-buildmanager will proceed to log into systems marked as selected in 
-the interaction window.
-For now, let's examine the interaction window first.
-<p>
-The interaction window initially has three sections.  From top to bottom
+<H2>
+Introduction</H2>
+The <TT>buildmanager</TT> application build coordinator is a flexible,
+configurable, tool which lets you build software on multiple systems simultaneouosly,
+in an organized and consistent fashion. It allows you to set up standardized
+build sequences and actions which will be performed automatically, stop
+if/when things go wrong, and allows interaction with various build systems
+to correct problems. It is implemented in expectk, which combines the <B>expect</B>
+package for working with interactive programs with the <B>Tk</B> windowing
+toolkit and the <B>Tcl</B> scripting langauge. Any system you can telnet
+to and run commands on can be used as a build system with buildmanager.
+<H2>
+Starting buildmanager</H2>
+At Fermilab, buildmanager is provided as a <B>ups</B> product, so before
+you can use it, you need to issue the command <TT>setup buildmanager</TT>
+to set the appropriate environment variables, etc. Since buildmanager uses
+the X Window system for displays, you need to be sitting at an X window
+terminal when you start it. Once these prerequisites are set, you can invoke
+buildmanager simply by saying <TT>buildmanager</TT> at your shell prompt.
+<H2>
+Initial screens</H2>
+Two buildmanager windows should appear on your X Window display; a login
+window:
+<BR><IMG SRC="loginwin.gif" ALT="partial screen image" >
+<BR>and an interaction window:
+<BR><IMG SRC="loginwin2.gif" ALT="partial screen image" >
+<P>The login window has an entry area for your login and password on the
+build systems, and a button labeled <B>Dismiss</B>. If you were to press
+return in the password entry field, or the <B>Dismiss</B> button, buildmanager
+will proceed to log into systems marked as selected in the interaction
+window. For now, let's examine the interaction window first.
+<P>The interaction window initially has three sections. From top to bottom
 they are:
-<ul>
-<li> menu-bar
-<li> string entry area
-<li> selected-systems checkbuttons
-</ul>
-The pressed-in buttons in the selected-system area show the operating 
-system names of the various systems that buildmanger currently knows about,
-and each has a checkbutton to the left  of the name that shows whether we
-are currently selecting that system to be included. 
-You can click these buttons to toggle the selection on and off.
+<UL>
+<LI>
+menu-bar</LI>
 
-<h2>Logging in</h2>
+<LI>
+string entry area</LI>
 
-After filling in a login and password in the login window, if you press the
-<b>Dismiss</b> button, (or the Return key in the password entry box), 
-buildmanager will remove the login window and proceed to telnet to and 
+<LI>
+selected-systems checkbuttons</LI>
+</UL>
+The pressed-in buttons in the selected-system area show the operating system
+names of the various systems that buildmanger currently knows about, and
+each has a checkbutton to the left of the name that shows whether we are
+currently selecting that system to be included. You can click these buttons
+to toggle the selection on and off.
+<H2>
+Logging in</H2>
+After filling in a login and password in the login window, if you press
+the
+<B>Dismiss</B> button, (or the Return key in the password entry box),
+buildmanager will remove the login window and proceed to telnet to and
 log into each of the currently selected systems.
-<p> 
-A text area will appear for each system, with some status labels and
-a window-sizing button to the left of each one.  <br>
-<img src="b1.gif" alt="partial screen image"><br>
-In these text areas, you can watch buildmanager log into each system.  
-If your login or password is incorrect for some
-system, buildmanager will re-prompt you for that system's login
-information with the login window.
+<P>A text area will appear for each system, with some status labels and
+a window-sizing button to the left of each one.
+<BR><IMG SRC="b1.gif" ALT="partial screen image" >
+<BR>In these text areas, you can watch buildmanager log into each system.
+If your login or password is incorrect for some system, buildmanager will
+re-prompt you for that system's login information with the login window.
+<P>Buildmanger will make a few passes over each login session, running
+a few startup commands and setting a few shell functions so that it can 
+interact with the windows in a consistent fashion.
+
+<P>During the login procedure, most of the buttons and windows on the buildmanager
+screen will grey-out and become inactive, untill the login has completed.
+
+<H2> Running Commands </H2>
+
+You can run commands via several methods, this section will cover them.
+<nl>
+<li> Entering commands in the text box next to the <b>Command:</b> label and 
+  pressing <b>Enter</b> or <b>Return</b> on your keyboard will make buildmanager 
+  "take turns" running the command on each host, waiting for a prompt to appear
+  on each host before running the command on the next one.
+<li> Entering commands in the text box next to the <b>Command:</b> label and 
+   pressing <b>Enter</b> on your keyboards numeric keypad will make buildmanager 
+   run the command on each host all at the same time.
+<li> Selecting a command from the <b>Commands</b> menu will execute the 
+   command on each host; whether it takes turns or not depends on the 
+   configuration.
+<li> Selecting the terminal window for a given host and typing a command in 
+  that window will also run commands, or let you answer questions from
+   programs, etc.
+</nl>
+<H2> Adding and Removing systems</H2>
+
+You can then add and delete listed build machines by clicking on their
+platform buttons in the main window, or clicking again to delete, and then
+pressing the [Update] button to have them actually logged in&nbsp; and/or
+logged out as needed.&nbsp; You can add or delete systems from the list
+of buttons by pulling down the Edit menu, choosing Host List,&nbsp; and
+editing the text list in the pop up window shown below:
 <p>
-Buildmanger will make a few passes over each login session, running a
-standard shell (currently <tt>/bin/sh</tt>), running a few startup commands 
-and setting a few shell functions so that it can interact with the windows 
-in a consistent fashion.
+<img src="hostlist.gif">
 <p>
-During the login procedure, most of the buttons and windows on the
-buildmanager screen will grey-out and become inactive, untill the login
-has completed.
 
-<h2>Building Software</h2>
+You can also destroy a host's window by exiting from that login session when typing in the terminal window.
 
-If you are using a configuration of buildmanager which has already been
-configured for your environment, and everything goes smoothly, you can
-build a given software product on the selected platforms, simply by
-pulling down the Commands menu, and selecting the appropriate build command.
-The system should proceed to obtain the sources from your source code
-repository (e.g. cvs repository), perform any indicated initial setup, 
-build, test, and distribute the software.
-<p>
-Of course, in the real world, not everything goes smoothly when building
-software on multiple platforms.
-For example, a program might be missing a preprocessor symbol definition
-needed to build on a given platform.  In that case, when the compile fails
-for that build on that platform, the build process for that platform will
-halt, and the status lines next to the window for that product will
-look like:<br>
-<center>
-Ready<br>
-hostname.domain<br>
-make-all-Failed<br>
-</center>
-which indicates that the "make all" command on that system printed
-something that buildmanager recognized as an error which wasn't ignored
-before stopping.
-At this point, you can click on the text area next to the status lines,
-and use the text area as a not-so-smart terminal, add some flags to the
-Makefile, or do a make with appropriate extra command line arguments
-(for example:
-<pre>make "CFLAGS=-g -DFIXFLAG" all</pre>
-)
-and now when the make completes, buldmanager will proceed to continue
-with the tests, etc. on this plattform.
+<H2>
+Building Software</H2>
 
-<h2>Missed completions</h2>
+See <a href="Integrating.html">Integrating build_manager, cvs, and upd</a> for examples of using buildmanager to build products.
 
-Occaisionally, when enough things are going on in a build, the output
-is sufficiently unusual that <b>buildmanager</b> will not notice that
-you ran a given command and that it succeeded.   If you are sure
-it completed properly, you can rerun the command (or a faster version of it)
-to convince buildmanager to continue with the build.  For example,
-you could run the command:
-<pre>make -n all</pre>
-to make buildmanager realize that a <tt>make all</tt> command has 
-complted successfully, and that it should move on to other tasks, like
-testing and distributing.
+<H2>Sending commands to some windows and not others</H2>
 
+You can send commands to individual windows by clicking on the terminal
+window for that host to select it, and then typing.
 
-<h2> Adding systems </h2>
-You can then add build machines by clicking on their platform buttons
-in the main window, or clicking again to delete.
+You can control which windows get sent commands from the <b>Command</b> menu and 
+the <b>Command:</b> entry box by selecting (green) and unselecting 
+(background) the checkbox labeled <b>Cmd</b>.  Only windows whose <b>Cmd</b> checkbox is green get sent commands from those sources.
 
-<h2> Removing systems </h2>
-You can remove a system by clicking on its platform button to remove it.
-You can also close a host window by exiting from the login session.
-</body>
-</html>
+<H2>Logging sessions to a file</H2>
+
+While you can cut and paste large amounts of text from the buildmanager 
+windows into an editor, etc. you can also check the <b>Log</b> checkbutton 
+next to a given terminal window, which will start writing a log file
+named <b><i>hostname</i>.log</b> for the terminal window for <i>hostname</i>
+until you un-check the box.  This file will be created in whatever directory 
+you were in when you started buildmanager.
+
+</BODY>
+</HTML>
