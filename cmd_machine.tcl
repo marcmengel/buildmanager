@@ -67,7 +67,7 @@ proc update_state {state} {
     setstate $s $state
     # puts "checking for statepending($s,$state)"
     if { [info exists statepending($s,$state)] } {
-        puts "about to do statepending"
+        # puts "about to do statepending"
 	catch $statepending($s,$state)
 	unset statepending($s,$state)
     }
