@@ -66,7 +66,7 @@ proc rcvchars { w string } {
         set escapepat "(\[^\x1b\]*)(\x1b\\\[\[0-9;\]*\[a-zA-z\])" 
 	while {  [ regexp $escapepat $string full before escape ] } {
             regsub "\x1b" $escape {<ESC>} printit
-            puts "saw escape $printit"
+            # puts "saw escape $printit"
 
 	    catch {
 		$w.v.t insert insert $before $taglist

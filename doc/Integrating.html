@@ -6,6 +6,8 @@
    <META NAME="GENERATOR" CONTENT="Mozilla/4.06 [en] (X11; I; Linux 2.0.35 i686) [Netscape]">
 </HEAD>
 <BODY>
+<A HREF="buildmanager.html">Back</A>
+to documentaton overview<hline>
 
 <H1>
 Integrating buildmanager, cvs,&nbsp; template_product, and upd</H1>
@@ -16,7 +18,6 @@ This document will describe using several tools for building <A HREF="http://www
 packages for multiple platforms.&nbsp; While these tools can be used in
 isolation, they were designed to be used together to provide the following
 benefits:
-<BLOCKQUOTE>
 <LI>
 Keeping sources in sync between build areas for multiple platforms</LI>
 
@@ -29,7 +30,6 @@ Maintaining revision history and revision control of sources.</LI>
 <LI>
 Extending the base of products that can be built and tested in a standardized
 fashion.</LI>
-</BLOCKQUOTE>
 
 <H2>
 Overview</H2>
@@ -38,7 +38,6 @@ building an example product,
 <BR><B>demo</B>, and in the process give an introduction to several of
 the tools involved.&nbsp; In particular, we will examine the following
 in detail:
-<BLOCKQUOTE>
 <LI>
 creating a prototype of your product file tree.</LI>
 
@@ -59,7 +58,6 @@ making changes to your file trees</LI>
 
 <LI>
 distributing your software via upd</LI>
-</BLOCKQUOTE>
 If you are logged into one of the nodes on the OSS cluster build machine,
 and have the appropriate permissions already, you should be able to go
 through the example in this document step by step and build and release
@@ -96,7 +94,6 @@ Once this is completed, we will have a prototype product tree that we can
 put in a Fermilab <B>cvs</B> repository.
 <P>This looks like the following, with what a user types in <B>bold</B>
 face (and <I>[tab]</I> is a Tab on your keyboard):
-<BLOCKQUOTE>
 <HR WIDTH="100%">
 <BR>&lt;build_host> # Setup the product
 <BR>&lt;build_host> <B>setup template_product</B>
@@ -138,7 +135,7 @@ face (and <I>[tab]</I> is a Tab on your keyboard):
 <BR><B>q</B>
 <BR>&lt;build_host>
 <BR>
-<HR WIDTH="100%"></BLOCKQUOTE>
+<HR WIDTH="100%">
 Of course, you will probably want to use&nbsp; your favorite editor rather
 than <B>ed</B>, but it is notoriously
 <BR>hard to show other editors in use in a document.&nbsp; We now have
@@ -163,18 +160,18 @@ into which we can place this source code module for our product.&nbsp;&nbsp;
 On most Fermilab development systems, we accomplish this by setting up
 a ups
 <BR>product like <B>uascvs</B> or <B>cdcvs:</B>
-<BLOCKQUOTE><B>setup uascvs</B></BLOCKQUOTE>
-Actually adding the module is accomplished with a simple command line:
-<BLOCKQUOTE><B>cvs import -m "demo product" demo Fermilab <I>username</I>_version</B></BLOCKQUOTE>
+<B>setup uascvs</B>
+Actually adding the module is accomplished with a simple command line:<br>
+><B>cvs import -m "demo product" demo Fermilab <I>username</I>_version</B>
 which will take the current directory tree and install it into our cvs
 repository as version <I><B>username</B>_</I><B>version</B>.
 <BR>I reccomend you actually put your username in there, so that several
 people following these instructions will check in different versions of
 the <B>demo</B> product sources.
 <P>If the above command gives you an error like:
-<BLOCKQUOTE>Permission denied.
+<BR>Permission denied.
 <BR>cvs [import aborted]: end of file from server (consult above messages
-if any)</BLOCKQUOTE>
+if any)<BR>
 you will need to contact the administrative contact for the repository,
 which should be
 <BR>the first part of your <B>CVSROOT</B> environment variable -- for example

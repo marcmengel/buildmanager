@@ -218,19 +218,21 @@ proc html_do_nl { w slash arg } {
 proc html_do_li { w slash arg } {
     global html_list_depth html_saw_item html_list_counter
 
-    # end the previous html_li tagged region
-    if { $html_saw_item($html_list_depth) } {
-	html_tag html_li_$html_list_depth $w "/"
+    if { "$slash" == "" } {
+	# end the previous html_li tagged region, if any
+	if { $html_saw_item($html_list_depth) } {
+	    html_tag html_li_$html_list_depth $w "/"
+	}
+	$w insert insert "\n"
+	html_tag html_li_$html_list_depth  $w ""
+	if { $html_list_counter($html_list_depth) == -1 } {
+	   $w insert insert "*  "
+	} else {
+	    incr html_list_counter($html_list_depth)
+	    $w insert insert "$html_list_counter($html_list_depth). "
+	}
+	set html_saw_item($html_list_depth) 1
     }
-    $w insert insert "\n"
-    html_tag html_li_$html_list_depth  $w ""
-    if { $html_list_counter($html_list_depth) == -1 } {
-       $w insert insert "*  "
-    } else {
-	incr html_list_counter($html_list_depth)
-	$w insert insert "$html_list_counter($html_list_depth). "
-    }
-    set html_saw_item($html_list_depth) 1
 }
 
 proc html_do_br { w slash arg } {

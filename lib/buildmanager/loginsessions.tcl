@@ -36,7 +36,10 @@ proc newloginsessions { newsessions } {
 	# lappend cmdlist($s) "exec /bin/sh"
 	# lappend cmdlist($s) "PS1='<$sw_dat(s2h,$s)> '"
 
-	lappend cmdlist($s) {test "$UPS_SHELL" = "sh" && eval 'setenv() { eval $1=\"$2\"; export $1; }'}
+	lappend cmdlist($s) {test "$UPS_SHELL" = "sh" && eval 'bm_setenv() { eval $1=\"$2\"; export $1; }'}
+	lappend cmdlist($s) {test "$UPS_SHELL" = "sh" && eval 'bm_alias() { eval "$1(){ $2 \"\$@\"; }"; }'}
+	lappend cmdlist($s) {test "$UPS_SHELL" = "csh" && eval 'alias bm_setenv setenv'}
+	lappend cmdlist($s) {test "$UPS_SHELL" = "csh" && eval 'alias bm_alias alias'}
 	if {[info exists os_dat(PLAT_COMMANDS,$flavor)]} {
 	    foreach cmd $os_dat(PLAT_COMMANDS,$flavor) {
 		lappend cmdlist($s) $cmd
@@ -48,13 +51,13 @@ proc newloginsessions { newsessions } {
 	    }
 	}
         if {[info exists os_dat(PATH,$flavor)]} {
-  	    lappend cmdlist($s) "setenv PATH $os_dat(PATH,$flavor):\$PATH"
+  	    lappend cmdlist($s) "bm_setenv PATH $os_dat(PATH,$flavor):\$PATH"
 	}
 
 	if {[info exists os_dat(ENVVARS)]} {
 	    foreach var $os_dat(ENVVARS) {
 		if { [info exists env($var)] } {
-		    lappend cmdlist($s)  "setenv $var '$env($var)'"
+		    lappend cmdlist($s)  "bm_setenv $var '$env($var)'"
 		}
 	    }
 	}
@@ -63,6 +66,9 @@ proc newloginsessions { newsessions } {
 		lappend cmdlist($s) $cmd
 	    }
 	}
+	lappend cmdlist($s) {bm_alias vi 'xterm -e /usr/bin/vi'}
+	lappend cmdlist($s) {bm_alias tpu 'xterm -e ${TPU_DIR}/bin/tpu'}
+	lappend cmdlist($s) {bm_alias edt 'xterm -e ${TPU_DIR}/bin/edt'}
         # not doing this any more...
 	# lappend cmdlist($s) "set -x"
 	set ncmds($s) [llength $cmdlist($s)]
