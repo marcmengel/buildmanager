@@ -261,11 +261,14 @@ proc main {} {
     source ${dir}/lib/buildmanager/passwd_popup.tcl
     
     lappend auto_path ${dir}/lib/buildmanager
+
     # make backspace and delete identical in entry widgets
     # make Control-U delete from here to front
     bind Entry <Delete> [bind Entry <BackSpace>]
     bind Entry <Control-U> {%w delete 0 insert}
+
     init 
+
     while [ catch expect_loop result] {
 	update
 	error_dialog expect_loop $result 

@@ -87,6 +87,13 @@ proc newloginsessions { newsessions } {
         set loginfailed 0
         set timeout 10
 	expect {
+	    -i logsessions -re {continue connecting.*\? $} { 
+		set s $expect_out(spawn_id)
+		exp_send -i $s "yes\r"
+
+		update_bytes
+		exp_continue
+            }
 	    -i logsessions -re {ast login: } {
 		    set s $expect_out(spawn_id)
 	            set timeouts($s) 0

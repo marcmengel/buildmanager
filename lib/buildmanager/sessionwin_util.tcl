@@ -13,8 +13,6 @@
 #   sessionlist			List of expect session_id's we're using
 #
  
-source vt100.tcl
-
 set sw_dat(verbose) 0
 set sw_dat(fixecho) 0
 

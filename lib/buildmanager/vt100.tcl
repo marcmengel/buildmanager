@@ -8,6 +8,7 @@ set vt100_mtags(5) bold
 set vt100_mtags(6) rev
 set vt100_mtags(7) rev
 set vt100_mtags(8) rev
+
 set vt100line {                                                                                }
 
 
@@ -38,15 +39,19 @@ proc vt100pad { t } {
 proc vt100string { t string } {
     global vt100_taglist
 	
-    # assumes string doesn't need to wrap more than once...
     set slen [string length $string]
     set llen [string length [$t get vtcursor {vtcursor lineend}]]
-    if { $llen < $slen} {
-	if { [$t compare {vtcursor + 1 lines} == end] } {
-	    vt100scroll $t
+    while { $llen < $slen} {
+        set s1 [string range $string 0 [expr $llen - 1]]
+	vt100string $t $s1
+        vt100cr $t
+        vt100newline $t
+	set string [string range $string $llen $slen]
+	set slen [string length $string]
+	set llen [string length [$t get vtcursor {vtcursor lineend}]]
+	if {$llen < 80} {
+	    set slen 0
         }
-	set string "[string range $string 0 [expr $llen - 1]]\n[string range $string $llen $slen]"
-	incr slen
     }
     $t delete vtcursor "vtcursor + $slen chars"
     $t insert vtcursor $string $vt100_taglist($t)
@@ -120,7 +125,10 @@ proc vt100esc { t escape first x y letter } {
 	    switch $y {
 	    0 { $t delete vtcursor end }
 	    1 { $t delete 1.0 vtcursor }
-	    2 { $t delete 1.0 end }
+	    2 { 
+		$t delete 1.0 end 
+		vt100init $t 
+	      }
 	    }
 	    vt100pad $t
 	}
@@ -153,7 +161,7 @@ proc vt100recv { t string } {
 	vt100init $t
     }
 
-    set plainpat "(\[^\t\n\r\a\b\x1b\]*)(\[\t\n\r\a\b\x1b\])"
+    set plainpat "(\[^\t\n\r\a\b\x1b\x0f\]*)(\[\t\n\r\a\b\x1b\x0f\])"
     set escapepat {((\[|O|\()\?*([0-9]*)(;*([0-9]*))([a-zA-Z]))} 
     
     while { [regexp $plainpat $string full before char] } {
@@ -163,6 +171,7 @@ proc vt100recv { t string } {
 	regsub $plainpat $string {} string
 
 	switch $char {
+	"\x0f"  { # ignore }
 	"\n"  { vt100newline $t }
 	"\r"  { vt100cr $t }
 	"\b"  { vt100bs $t }

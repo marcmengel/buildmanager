@@ -8,6 +8,7 @@ Group:
 Common:
   Action=Setup
     setupRequired("expect v5_25")
+    setupRequired("buildconfig")
     setupOptional("cdcvs")
     setupEnv()
     proddir()
