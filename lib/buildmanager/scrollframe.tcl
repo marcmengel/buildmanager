@@ -95,7 +95,5 @@ proc show_in_scrollframe { w } {
     set bot [expr [winfo y $w] + [winfo height $w]]
     set offset [expr $bot - [winfo height $gf]]
     set prcnt  [expr $offset * 100 / [winfo height $sf].0]
-    puts "y is [winfo y $w] height [winfo height $w] sf height [winfo height $sf]"
-    puts "bot is $bot offset is $offset prcnt is $prcnt"
     vscrollframe_cmd $gf $prcnt
 }
