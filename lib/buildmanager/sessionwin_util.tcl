@@ -41,15 +41,30 @@ proc rcvchars { w string } {
 	# collapse carriage-return/newline stuff before inserting
 	regsub -all "\[\r\n\]+" $string "\n" string
 
-        if { [ regexp "\b \b" $string ] } {
-            while { [ regsub "\b \b" $string {} string ] } {
-	         $w.v.t delete insert-1c
+	# stty erase with space setting
+	while { [ regsub "^\b \b" $string {} string ] } {
+	     catch {$w.v.t delete insert-1c}
+	}
+	# tcsh backspace stuff
+	while { [ regsub "^\b\x1b\\\[K" $string {} string ] } {
+	     catch {$w.v.t delete insert-1c}
+	}
+	while { [ regsub "^\b" $string {} string ] } {
+	     catch {$w.v.t delete insert-1c}
+	}
+	if { [ regsub "\a" $string {} string ] } {
+	    catch {
+		    $w.v.t configure -background red
+		    after 100 "$w.v.t configure -background {#d9d9d9}"
 	    }
-	} else {
+	}
+	while { [ regsub "\a" $string {} string ] } {
+	}
+	catch {
 	    $w.v.t mark set insert end
 	    $w.v.t insert insert $string
 	}
-	$w.v.t see insert
+	catch {$w.v.t see insert}
 	append sw_dat(rcvd_buf,$w) $string
 	flush_sent $w
     }
@@ -224,7 +239,9 @@ proc setstatus { s txt } {
 
     set w $sw_dat(s2w,$s)
     set sw_dat(status,$s) $txt
-    $w.l1 configure -text $txt
+    if { [winfo exists $w.l1] } {
+        $w.l1 configure -text $txt
+    }
 }
 
 proc setstate { s txt } {

@@ -26,6 +26,9 @@ proc cmd_parallel { string {list {}} } {
     .cmd.e delete 0 end
     .cmd.e insert 0 $string
     .cmd.e selection range 0 end
+    lappend history $string
+    set histslot [llength $history]
+    # puts "history is $history"
     if { "$list" == "" } {
 	set list $sessionlist
     }
@@ -35,26 +38,25 @@ proc cmd_parallel { string {list {}} } {
 	    exp_send -i $s "$result\r"
 	}
     }
-    lappend history $string
-    set histslot [llength $history]
-    # puts "history is $history"
 }
 
 proc cmd_taketurns { string {list {xxxxxxxxxx}} } {
     global pending1 pending2 sessionlist history histslot
     global out_of_the_loop
 
-    .cmd.e delete 0 end
-    .cmd.e insert 0 $string
-    .cmd.e selection range 0 end
-    if { "$list" == "" } {
+    if { "$list" == "$sessionlist" } {
+	.cmd.e delete 0 end
+	.cmd.e insert 0 $string
+	.cmd.e selection range 0 end
         lappend history $string
         set histslot [llength $history]
         # puts "history is $history"
-	return
     }
     if { "$list" == "xxxxxxxxxx" } {
 	set list $sessionlist
+    }
+    if { "$list" == "" } {
+	return
     }
     set s [lindex $list 0]
     while { [info exists out_of_the_loop($s)] && $out_of_the_loop($s) } {

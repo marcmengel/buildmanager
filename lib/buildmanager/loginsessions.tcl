@@ -30,12 +30,18 @@ proc newloginsessions { newsessions } {
 
     foreach s $newsessions {
         set w $sw_dat(s2w,$s)
+	set timeouts($s) 0
         set flavor $os_dat(w2f,$w)
 	set cmdlist($s) {}
 	# lappend cmdlist($s) "exec /bin/sh"
 	# lappend cmdlist($s) "PS1='<$sw_dat(s2h,$s)> '"
 
 	lappend cmdlist($s) {test "$UPS_SHELL" = "sh" && eval 'setenv() { eval $1=\"$2\"; export $1; }'}
+	if {[info exists os_dat(PLAT_COMMANDS,$flavor)]} {
+	    foreach cmd $os_dat(PLAT_COMMANDS,$flavor) {
+		lappend cmdlist($s) $cmd
+	    }
+	}
         if {[info exists os_dat(INIT_COMMANDS)]} {
 	    foreach cmd $os_dat(INIT_COMMANDS) { 
 		lappend cmdlist($s) $cmd
@@ -57,11 +63,6 @@ proc newloginsessions { newsessions } {
 		lappend cmdlist($s) $cmd
 	    }
 	}
-	if {[info exists os_dat(PLAT_COMMANDS,$flavor)]} {
-	    foreach cmd $os_dat(PLAT_COMMANDS,$flavor) {
-		lappend cmdlist($s) $cmd
-	    }
-	}
         # not doing this any more...
 	# lappend cmdlist($s) "set -x"
 	set ncmds($s) [llength $cmdlist($s)]
@@ -78,26 +79,32 @@ proc newloginsessions { newsessions } {
 
     while {[llength $logsessions] > 0} {
         set loginfailed 0
+        set timeout 10
 	expect {
 	    -i logsessions -re {ast login: } {
+		    set s $expect_out(spawn_id)
+	            set timeouts($s) 0
 		    update_bytes
 		    exp_continue 
 	    }
 	    -i logsessions -re {ogin: $} 	 { 
 		    set s $expect_out(spawn_id)
+	            set timeouts($s) 0
 		    update_bytes
 		    exp_send -i $s "$logname\r"
 		    exp_continue 
 	    }
 	    -i logsessions -re {word: ?$} 	 { 
 		    set s $expect_out(spawn_id)
+	            set timeouts($s) 0
 		    update_bytes
 		    exp_send -i $s "$password\r"
 		    exp_continue 
 	    }
 	    -i logsessions -re $logfail	 {
-		update_bytes
 		set s $expect_out(spawn_id)
+		set timeouts($s) 0
+		update_bytes
 		set host $sw_dat(s2h,$s)
 
 
@@ -106,6 +113,7 @@ proc newloginsessions { newsessions } {
 	    -i logsessions -re $promptre	 { 
 
 		set s $expect_out(spawn_id)
+		set timeouts($s) 0
 		update_bytes
 		exp_send -i $s "[lindex $cmdlist($s) $curcmd($s)]\r"
 		setstatus $s "Setup - $curcmd($s)"
@@ -119,19 +127,35 @@ proc newloginsessions { newsessions } {
 		}
 	    }
 	    -i logsessions -re "\[\r\n\]+"	{ 
-		    update_bytes
-		    exp_continue
+		set s $expect_out(spawn_id)
+		set timeouts($s) 0
+		update_bytes
+		exp_continue
 	    }
 	    -i logsessions timeout	 { 
-		    exp_continue
+		    # puts "saw timeout logsessions is |$logsessions|"
+		    foreach s $logsessions {
+			incr timeouts($s)
+			setstatus $s "timeouts = $timeouts($s)"
+			if {$timeouts($s) > 5} {
+			    drop_session $s
+		            set index [lsearch -exact $logsessions $s]
+		            set logsessions [lreplace $logsessions $index $index]
+			}
+	            }
+		    if {[llength $logsessions] > 0} {
+			exp_continue
+		    }
 	    }
-	    -i logsessions eof	 { 
+	    -i logsessions eof	 {
 		set s $expect_out(spawn_id)
 		set host $sw_dat(s2h,$s)
 
 		puts "lost connection on host $host"
 		set index [lsearch -exact $logsessions $s]
-		set logsessions [lreplace $logsessions $index $index]
+		if { $index >= 0 } {
+		    set logsessions [lreplace $logsessions $index $index]
+		}
 		drop_session $s
 		if {[llength $logsessions] > 0} {
 		    exp_continue

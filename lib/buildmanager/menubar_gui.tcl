@@ -20,6 +20,7 @@ if {![winfo exists $w.m5]} {menubutton $w.m5}
 if {![winfo exists $w.m5.m]} {menu $w.m5.m}
 catch "$w.m5.m add tearoff "
 
+catch "$w.m5.m add command -label Hostlist -command edit_hosts"
 
 
 # ---------------- Button  $w.b6 ---------------------

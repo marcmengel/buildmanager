@@ -1,4 +1,4 @@
-This is the buildmanager product, version v1_1
+This is the buildmanager product, version v1_5
 
 It supports setting up a cluster of build machines, and starting
 login sessions on each machine, with commands runnable on all systems

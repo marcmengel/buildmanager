@@ -2,10 +2,11 @@ proc passwd_popup { w } {
 
 # ---------------- Toplevel  $w ---------------------
 if {![winfo exists $w]} {toplevel $w}
- $w configure -height "100" -width "100"
+ $w configure -height "100" -width "100" 
 wm title $w {t2}
 wm focusmodel $w active
 wm transient $w .
+wm geometry $w "+[winfo rootx .]+[expr 80+[winfo rooty .]]"
 
 # ---------------- Label  $w.m1 ---------------------
 if {![winfo exists $w.m1]} {message $w.m1}

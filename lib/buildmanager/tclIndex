@@ -71,3 +71,7 @@ set auto_index(set_everything_state) [list source [file join $dir loginsessions.
 set auto_index(newloginsessions) [list source [file join $dir loginsessions.tcl]]
 set auto_index(getlogininfo) [list source [file join $dir loginsessions.tcl]]
 set auto_index(historylist_popup) [list source [file join $dir historylist_popup.tcl]]
+set auto_index(hostlist_editor) [list source [file join $dir hostlist_editor.tcl]]
+set auto_index(fill_hosts) [list source [file join $dir hostlist_utils.tcl]]
+set auto_index(update_hosts) [list source [file join $dir hostlist_utils.tcl]]
+set auto_index(edit_hosts) [list source [file join $dir hostlist_utils.tcl]]

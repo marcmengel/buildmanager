@@ -8,10 +8,8 @@ Group:
 Common:
   Action=Setup
     setupRequired("expect v5_25")
-    setupRequired("cdcvs")
+    setupOptional("cdcvs")
     setupEnv()
     proddir()
     envPrepend(PATH, ${UPS_PROD_DIR}/bin)
-
 END:
-

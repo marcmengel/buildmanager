@@ -7,24 +7,24 @@ set loginok 0
 set bwcount 0
 
 proc updateflavorbuttons { w w2 } {
-    global os_dat bwcount
+    global host_dat bwcount
 
-    foreach flavor $os_dat(LIST) {
+    foreach host $host_dat(LIST) {
         incr bwcount
         set bw $w.b_$bwcount
 
-        if { ![info exists os_dat(f2bw,$flavor)] } {
-	    checkbutton $bw -text "$flavor" \
-		    -variable "os_dat(do,$flavor)" \
+        if { ![info exists host_dat(h2bw,$host)] } {
+	    checkbutton $bw -text "$host" \
+		    -variable "host_dat(do,$host)" \
 		    -selectcolor green
 	    pack $bw -side left
-	    set os_dat(f2bw,$flavor) $bw
+	    set host_dat(h2bw,$host) $bw
 	}
     }
 }
 
 proc updatehostwindows { w } {
-    global os_dat sw_dat
+    global host_dat sw_dat os_dat
     global hwcount
     global loginok
 
@@ -35,32 +35,33 @@ proc updatehostwindows { w } {
     }
     set newsessions {}
 
-    foreach flavor $os_dat(LIST) {
+    foreach host $host_dat(LIST) {
+        set flavor $host_dat(h2f,$host)
         incr hwcount
 	set hw $w.h_$hwcount
 
-	# if we should be doing this flavor, but arent, add a window
+	# if we should be doing this host, but arent, add a window
 	# for it
 
-	if { $os_dat(do,$flavor) && ![info exists os_dat(f2w,$flavor)]} {
-	    set h $os_dat(HOST,$flavor)
-	    set os_dat(f2w,$flavor) $hw
+	if { $host_dat(do,$host) && ![info exists host_dat(h2w,$host)]} {
+	    set host_dat(h2w,$host) $hw
+	    set host_dat(w2h,$hw) $host
 	    set os_dat(w2f,$hw) $flavor
 
-	    sessionwin $hw $h
+	    sessionwin $hw $host
 	    pack $hw -expand 1 -fill both -side bottom
 
 	    set s $sw_dat(w2s,$hw)
-    	    set os_dat(s2f,$s) $flavor
+	    set os_dat(s2f,$s) $flavor
 	    $hw.l4 configure -text "$flavor"
 	    lappend newsessions $s
 	}
 
-	# if we are doing this flavor, but shoudn't be anymore,
+	# if we are doing this host, but shoudn't be anymore,
 	# drop the session
 
-	if { !$os_dat(do,$flavor) && [info exists os_dat(f2w,$flavor)]} {
-	    drop_session $sw_dat(w2s,$os_dat(f2w,$flavor))
+	if { !$host_dat(do,$host) && [info exists host_dat(h2w,$host)]} {
+	    drop_session $sw_dat(w2s,$host_dat(h2w,$host))
 	}
     }
 
@@ -70,16 +71,20 @@ proc updatehostwindows { w } {
 }
 
 proc drop_session { s } {
-    global sessionlist sw_dat os_dat
+    global sessionlist sw_dat os_dat host_dat
 
-    set w $sw_dat(s2w,$s)
-    set flavor $os_dat(w2f,$w)
-    set os_dat(do,$flavor) 0
-    unset os_dat(w2f,$w)
-    unset os_dat(f2w,$flavor)
-    catch "destroy $w"
-    set index [lsearch -exact $sessionlist $s]
-    set sessionlist [lreplace $sessionlist $index $index]
+    catch {
+	set w $sw_dat(s2w,$s)
+	set host $host_dat(w2h,$w)
+	set host_dat(do,$host) 0
+	unset host_dat(w2h,$w)
+	unset host_dat(h2w,$host)
+	destroy $w
+    } res1
+    catch {
+	set index [lsearch -exact $sessionlist $s]
+	set sessionlist [lreplace $sessionlist $index $index]
+    } res2
     return [llength $sessionlist]
 }
 
@@ -89,7 +94,7 @@ proc drop_session { s } {
 
 proc init {} {
     global argv env spawn_id history histslot expect_out pending2
-    global os_dat sw_dat
+    global os_dat sw_dat host_dat
     global promptre product version 
     global debug_state
        
