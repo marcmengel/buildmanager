@@ -221,18 +221,12 @@ set host_dat(h2f,irixhost)  IRIX+5
 set os_dat(LIST)  {IRIX+5 Linux+2 SunOS+5}
 </pre>
 <pre>
-set os_dat(PATH,Linux+2)
-"/bin:/sbin:/usr/bin:/usr/local/bin:/usr/X11R6/bin"
-set os_dat(PATH,IRIX+5) 
-"/usr/X11/bin:/usr/bsd:/usr/ccs/bin:/usr/local/bin"
+set os_dat(PATH,Linux+2) "/bin:/sbin:/usr/bin:/usr/local/bin:/usr/X11R6/bin"
+set os_dat(PATH,IRIX+5)  "/usr/X11/bin:/usr/bsd:/usr/ccs/bin:/usr/local/bin"
 </pre>
 <pre>
-lappend os_dat(PLAT_COMMANDS,SunOS+5)     {setenv OPENWINHOME
-"/usr/openwin"}
-set os_dat(PATH,SunOS+5)
-"/opt/SUNWspro/bin:/bin:/usr/bin:/usr/ccs/bin:\
-/usr/ucb:/usr/openwin/bin:/usr/local/bin"
-
+lappend os_dat(PLAT_COMMANDS,SunOS+5)     {setenv OPENWINHOME "/usr/openwin"}
+set os_dat(PATH,SunOS+5) "/opt/SUNWspro/bin:/bin:/usr/bin:/usr/ccs/bin:/usr/ucb:/usr/openwin/bin:/usr/local/bin"
 </pre>
     <hr width="100%" />
     <h2>
@@ -247,17 +241,11 @@ set os_dat(PATH,SunOS+5)
 <pre>
 array set cmd_menu {
     {cd}                {cmd_parallel  "cd %D"}
-    {cvs export}        {cmd_taketurns "cd %d; cvs export -r %V -d
-%T %P" }
-    {cvs checkout}      {cmd_parallel  "cd %d; cvs co -r %V -d %T
--A %P" }
+    {cvs export}        {cmd_taketurns "cd %d; cvs export -r %V -d %T %P" }
+    {cvs checkout}      {cmd_parallel  "cd %d; cvs co -r %V -d %T -A %P" }
     {make build_n_test} {cmd_parallel "(cd %D; make build_n_test)"}
-    {setup -q build?}   {cmd_parallel  "cd %D; setup -q 'build?' -r
-`pwd` -M ./u
-ps -m %P.table %P"}
-    {setup}             {cmd_parallel  "cd %D; setup  -r `pwd` -M
-./ups -m %P.ta
-ble %P"}
+    {setup -q build?}   {cmd_parallel  "cd %D; setup -q 'build?' -r `pwd` -M ./ups -m %P.table %P"}
+    {setup}             {cmd_parallel  "cd %D; setup  -r `pwd` -M ./ups -m %P.table %P"}
     {make declare}      {cmd_taketurns "(cd %D; make declare)"}
     {make all}          {cmd_parallel  "(cd %D; make all)"}
     {make test}         {cmd_parallel  "(cd %D; make test)"}
