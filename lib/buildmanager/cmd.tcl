@@ -42,6 +42,7 @@ proc cmd_parallel { string {list {}} } {
 
 proc cmd_taketurns { string {list {xxxxxxxxxx}} } {
     global pending1 pending2 sessionlist history histslot
+    global out_of_the_loop
 
     .cmd.e delete 0 end
     .cmd.e insert 0 $string
@@ -56,7 +57,7 @@ proc cmd_taketurns { string {list {xxxxxxxxxx}} } {
 	set list $sessionlist
     }
     set s [lindex $list 0]
-    while {[info exists out_of_the_loop($s)] && $out_of_the_loop($s)} {
+    while { [info exists out_of_the_loop($s)] && $out_of_the_loop($s) } {
 	set list [lrange $list 1 end]
         set s [lindex $list 0]
         if { "$list" == "" } {

@@ -32,21 +32,23 @@ proc newloginsessions { newsessions } {
         set w $sw_dat(s2w,$s)
         set flavor $os_dat(w2f,$w)
 	set cmdlist($s) {}
-	lappend cmdlist($s) "exec /bin/sh"
-	lappend cmdlist($s) "PS1='<$sw_dat(s2h,$s)> '"
+	# lappend cmdlist($s) "exec /bin/sh"
+	# lappend cmdlist($s) "PS1='<$sw_dat(s2h,$s)> '"
+
+	lappend cmdlist($s) {test "$UPS_SHELL" = "sh" && eval 'setenv() { eval $1=\"$2\"; export $1; }'}
         if {[info exists os_dat(INIT_COMMANDS)]} {
 	    foreach cmd $os_dat(INIT_COMMANDS) { 
 		lappend cmdlist($s) $cmd
 	    }
 	}
         if {[info exists os_dat(PATH,$flavor)]} {
-  	    lappend cmdlist($s) "PATH=$os_dat(PATH,$flavor):\$PATH; export PATH"
+  	    lappend cmdlist($s) "setenv PATH $os_dat(PATH,$flavor):\$PATH"
 	}
 
 	if {[info exists os_dat(ENVVARS)]} {
 	    foreach var $os_dat(ENVVARS) {
 		if { [info exists env($var)] } {
-		    lappend cmdlist($s)  "$var='$env($var)'; export $var"
+		    lappend cmdlist($s)  "setenv $var '$env($var)'"
 		}
 	    }
 	}
@@ -60,7 +62,8 @@ proc newloginsessions { newsessions } {
 		lappend cmdlist($s) $cmd
 	    }
 	}
-	lappend cmdlist($s) "set -x"
+        # not doing this any more...
+	# lappend cmdlist($s) "set -x"
 	set ncmds($s) [llength $cmdlist($s)]
 	set curcmd($s) 0
 	set logfails($s) 0
