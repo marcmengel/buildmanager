@@ -19,17 +19,28 @@ proc cmd_substitute {string s} {
     return $result
 }
 
-proc cmd_parallel { string {list {}} } {
+proc cmd_parallel { string {list {xxxxxxxxxx}} } {
     global sessionlist os_dat global history histslot
     global out_of_the_loop
 
+     # some commands *really* should take turns...
+
+     if { [string match {*ups*declare*} $string] || 
+	  [string match {*make*addproduct*} $string]  ||
+	  [string match {*make*kits*} $string]  ||
+	  [string match {*make*local*} $string]  ||
+	  [string match {*upd*product*} $string]  ||
+	  [string match {*upd*install*} $string]  } {
+
+         return [cmd_taketurns $string $list]
+     }
     .cmd.e delete 0 end
     .cmd.e insert 0 $string
     .cmd.e selection range 0 end
     lappend history $string
     set histslot [llength $history]
     # puts "history is $history"
-    if { "$list" == "" } {
+    if { "$list" == {xxxxxxxxxx} } {
 	set list $sessionlist
     }
     foreach s $list {
@@ -52,7 +63,7 @@ proc cmd_taketurns { string {list {xxxxxxxxxx}} } {
         set histslot [llength $history]
         # puts "history is $history"
     }
-    if { "$list" == "xxxxxxxxxx" } {
+    if { "$list" ==  {xxxxxxxxxx}} {
 	set list $sessionlist
     }
     if { "$list" == "" } {

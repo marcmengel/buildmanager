@@ -235,7 +235,7 @@ proc sessionwin { w host } {
     global sw_dat sessionlist
     global spawn_id
 
-    spawn telnet $host
+    spawn ssh $host
     set sw_dat(w2w,$w) $w
     set sw_dat(w2w,$w.v.t) $w
     set sw_dat(w2s,$w) $spawn_id
