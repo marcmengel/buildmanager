@@ -17,10 +17,13 @@ set vt100_mtags(5) bold
 set vt100_mtags(6) rev
 set vt100_mtags(7) rev
 set vt100_mtags(8) rev
+set vt100seenew 1
+
 
 
 proc vt100string { t string } {
     global vt100_taglist
+    global vt100seenew
 	
     set slen [string length $string]
     set llen [string length [$t get vt100cursor {vt100cursor lineend}]]
@@ -28,7 +31,9 @@ proc vt100string { t string } {
     $t delete vt100cursor "vt100cursor + $slen chars"
     $t insert vt100cursor $string $vt100_taglist($t)
     $t mark set insert vt100cursor
-    $t see vt100cursor
+    if {$vt100seenew} {
+	 $t see vt100cursor
+    }
 }
 
 proc vt100newline { t } {
@@ -41,12 +46,15 @@ proc vt100newline { t } {
 
 proc vt100scroll { t } {
     global vt100line
+    global vt100seenew
 
     $t insert end "\n"
     $t mark set vt100cursor end
     $t mark set vt100origin "end -24 lines linestart"
     # puts "vt100scroll vt100origin: [$t index vt100origin] end: [$t index end]"
-    $t see end
+    if {$vt100seenew} {
+	 $t see end
+    }
 }
 
 proc vt100cr { t } { $t mark set vt100cursor "vt100cursor linestart" }
@@ -63,8 +71,9 @@ proc vt100bs { t } {
 
 proc vt100bel { t } {
     catch {
+        set color [$t cget -background]
 	$t configure -background red
-	after 100 "$t configure -background {#d9d9d9}"
+	after 100 "$t configure -background $color"
     }
 }
 
@@ -270,12 +279,15 @@ proc vt100move { relabs t x y } {
 
 proc vt100pad { t } {
     global vt100lines
+    global vt100seenew
 
     set save1 [$t index vt100cursor]
     set save2 [$t index vt100origin]
     set lines [expr int( 25 - ([$t index end] - [$t index vt100origin]))]
     $t insert end [string range $vt100lines 1 $lines]
-    $t see end
     $t mark set vt100cursor $save1
     $t mark set vt100origin $save2
+    if {$vt100seenew} {
+	 $t see end
+    }
 }

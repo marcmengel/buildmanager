@@ -36,6 +36,7 @@ bind $w.v10.lb <Configure> {
         if {[%W index end] == 0} {
 	    foreach line $history {
 		%W insert end $line
+                %W see end
 	    }
         }
     }

@@ -23,7 +23,8 @@ if {![winfo exists $w.m5.m]} {menu $w.m5.m}
 catch "$w.m5.m add tearoff "
 catch "$w.m5.m add command "
  $w.m5.m entryconfigure 1 -command "edit_hosts" -label "Hostlist"
-
+catch "$w.m5.m add checkbutton "
+ $w.m5.m entryconfigure 2 -onvalue 1 -offvalue 0 -variable vt100seenew -label "See bottom on new text"
 
 
 # ---------------- Button  $w.b6 ---------------------
@@ -37,7 +38,7 @@ label $w.l4 -text "Connect:"
 
 # ---------------- Menubutton  $w.m6 ---------------------
 if {![winfo exists $w.m6]} {menubutton $w.m6}
- $w.m6 configure -menu "$w.m6.m" -padx "6" -pady "4" -text "/usr/local/bin/telnet" -textvariable "connect_command"
+ $w.m6 configure -menu "$w.m6.m" -padx "6" -pady "4" -textvariable "connect_command"
 
 # ---------------- Menu  $w.m6.m ---------------------
 if {![winfo exists $w.m6.m]} {menu $w.m6.m}

@@ -25,10 +25,12 @@ if {![winfo exists $w.l4]} {label $w.l4}
 if {![winfo exists $w.b]} {button $w.b}
  $w.b configure -bitmap "@${dir}/lib/bitmaps/winsize.xbm" -command "\
      set h \[$w.v.t cget -height\] ;\
-     if { \$h < 24 } {set h 24} else {set h 5} ;\
+     if { \$h > 23 } {set h 4} else {set h 24} ;\
      $w.v.t configure -height \$h ;\
-     $w.v.t see end \
+     $w.v.t see end ; \
+     if { \$h > 23 } {after 500 \"show_in_scrollframe $w\"} \
  "
+
 
 # ---------------- Checkbutton $w.b2 --------------------
 if {![winfo exists $w.b2]} {checkbutton $w.b2}
@@ -40,6 +42,14 @@ if {![winfo exists $w.b3]} {checkbutton $w.b3}
 $w.b3 configure -text "Cmd" -command "toggle_cmd $w" \
 		    -selectcolor green -variable "$w.b3.var"
 $w.b3 select
+
+# ---------------- Button $w.b4 --------------------
+if {![winfo exists $w.b4]} {button $w.b4}
+ $w.b4 configure -text "." -command \
+	"pack forget $w; \
+	 button ${w}_icon -text \[$w.l2 cget -text\] -command \"pack $w -expand 1 -fill both -side top; destroy ${w}_icon\"; \
+	 pack ${w}_icon -expand 1 -fill both -side top"
+	 
 
 # ---------------- Frame  $w.v ---------------------
 if {![winfo exists $w.v]} {frame $w.v}
@@ -69,6 +79,7 @@ pack configure $w.l3 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 
 pack configure $w.l4 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 pack configure $w.b2 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
 pack configure $w.b3 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
+pack configure $w.b4 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
 pack configure $w.b -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side right
 # ----------------- Bindings ---------------------------
 }
