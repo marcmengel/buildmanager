@@ -72,8 +72,10 @@ proc vt100bs { t } {
 proc vt100bel { t } {
     catch {
         set color [$t cget -background]
-	$t configure -background red
-	after 100 "$t configure -background $color"
+        if { "$color" != "#ff0000" } {
+	    $t configure -background  "#ff0000"
+	    after 100 "$t configure -background $color"
+        }
     }
 }
 
