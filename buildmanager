@@ -230,9 +230,20 @@ proc login_phase3 { s host } {
     exp_send [cmd_substitute "test -d  %d || mkdir -p %d\r" $s]
 }
 
+proc set_everything_state { win state } {
+    if { [winfo class $win] != "Text" } {
+        catch {$win configure -state $state}
+    }
+    foreach kid [winfo children $win] {
+	set_everything_state $kid $state
+    }
+}
+
 proc loginsessions  { newsessions } {
     global sessionlist sw_dat
 
+    set_everything_state . disabled
+    update
     #
     # broken into phases to use long delay between entering password
     # and finishing .profile type stuff to start login of other hosts
@@ -243,6 +254,8 @@ proc loginsessions  { newsessions } {
 	    login_$phase $s $sw_dat(s2h,$s)
 	}
     }
+    set_everything_state . enabled
+    update
 }
 
 proc update_bytes {} {
@@ -388,7 +401,14 @@ proc init {} {
     global argv env spawn_id history histslot expect_out pending pending2
     global os_dat sw_dat
     global promptre product version 
+    global debug_state
        
+    if { [lindex $argv 0] == "-debug_state" } {
+	set argv [lrange $argv 1 end]
+	set debug_state 1
+    } else {
+	set debug_state 0
+    }
     if { [lindex $argv 0] == "-verbose" } {
 	set argv [lrange $argv 1 end]
     } else {
@@ -425,13 +445,18 @@ proc init {} {
 proc expect_loop {} {
     global argv env spawn_id history histslot expect_out pending pending2
     global os_dat sw_dat
-    global promptre cmdstartre cmdfailre cmdnevermindre sessionlist
+    global promptre cmdstartre cmdfailre cmdnevermindre questionre
+    global sessionlist
+    global debug_state
 
     expect {
 	-i sessionlist -re $cmdstartre { 
 	    set s $expect_out(spawn_id)
 
-	    # puts "saw makestart string on $s"
+	    if $debug_state {
+	        puts "saw command start string:"
+		puts "$expect_out(0,string)"
+	    }
 
 	    set cmd  $expect_out(1,string)
 	    set args $expect_out(2,string)
@@ -452,14 +477,37 @@ proc expect_loop {} {
 	}
 	-i sessionlist -re $cmdfailre {
 	    set s $expect_out(spawn_id)
-	    regsub -- {-OK} $pending2($s) {-Failed} pending2($s)
+	    if { [info exists pending2($s)] } {
+		if $debug_state {
+		    puts "I think $pending2($s) failed because I saw:"
+		    puts "$expect_out(0,string)"
+		}
+	        regsub -- {-OK} $pending2($s) {-Failed} pending2($s)
+	    }
 	    update_bytes
 	    exp_continue
 	}
 	-i sessionlist -re $cmdnevermindre {
 	    set s $expect_out(spawn_id)
-	    regsub -- {-Failed} $pending2($s) {-OK} pending2($s)
+	    if { [info exists pending2($s)] } {
+		if $debug_state {
+		    puts "I think $pending2($s) succeeded after all because I saw:"
+		    puts "$expect_out(0,string)"
+		}
+	        regsub -- {-Failed} $pending2($s) {-OK} pending2($s)
+	    }
 	    update_bytes
+	    exp_continue
+	}
+	-i sessionlist -re $questionre {
+	    set s $expect_out(spawn_id)
+	    if { [info exists pending2($s)] } {
+		set state $sw_dat(state,$s)
+		setstatus $s Question
+	        update_state "${state}-Question"
+	    } else {
+	        update_status Question
+	    }
 	    exp_continue
 	}
 	-i sessionlist -re $promptre {
@@ -489,9 +537,14 @@ proc error_dialog {routine message} {
     global errorInfo
 
     set errortolist $errorInfo
-    set res [tk_dialog .error "Error!" "Error in $routine: $message" {} 0 "Ok" "Info"]
+puts $errortolist
+    set res [tk_dialog .error "Error!" "Error in $routine: $message" {} 0 "Ok" "Info" "Exit" ]
     if {$res == 1} {
 	puts $errortolist
+    }
+    if {$res == 2} {
+	puts $errorlist
+	exit
     }
 }
 
@@ -500,7 +553,7 @@ proc main {} {
     bind Entry <Delete> [bind Entry <BackSpace>]
     init 
     while [ catch expect_loop result] {
-	error_dialog event_loop $result 
+	error_dialog expect_loop $result 
     }
     exit
 }

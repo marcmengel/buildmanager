@@ -109,6 +109,9 @@ proc InitExpectText {} {
 	}
     }
 
+    # control c needs to work!
+    bind ExpectText <Control-Key-c> 	{sendchars %W "\x003"}
+
     # xterm mouse button 2 emulation
     #
     bind ExpectText <<Paste>> 		{sendchars %W [selection get]}

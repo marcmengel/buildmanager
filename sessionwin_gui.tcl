@@ -25,7 +25,7 @@ if {![winfo exists $w.l4]} {label $w.l4}
 if {![winfo exists $w.b]} {button $w.b}
  $w.b configure -bitmap "@${dir}/winsize.xbm" -command "\
      set h \[$w.v.t cget -height\] ;\
-     if { \$h < 24 } {set h 24} else {set h 8} ;\
+     if { \$h < 24 } {set h 24} else {set h 5} ;\
      $w.v.t configure -height \$h ;\
      $w.v.t see end \
  "
@@ -41,7 +41,7 @@ if {![winfo exists $w.v.sb]} {scrollbar $w.v.sb}
 
 # ---------------- Text  $w.v.t ---------------------
 if {![winfo exists $w.v.t]} {text $w.v.t}
- $w.v.t configure -height 8 -width "80" -yscrollcommand "$w.v.sb set"
+ $w.v.t configure -height 5 -width "80" -yscrollcommand "$w.v.sb set"
 catch "$w.v.t tag add sel"
  $w.v.t tag configure sel -background "#c3c3c3" -borderwidth "1" -foreground "Black" -relief "raised"
 
