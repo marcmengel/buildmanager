@@ -1,0 +1,41 @@
+# build product area
+proc productroot { flavor } {
+    global product version env
+
+    return "/fnal/ups/${product}/${version}/${flavor}"
+}
+
+# operating systems to run on
+set os_dat(LIST)  {AIX+3 AIX+4 IRIX+5 IRIX+6 Linux+2 OSF1+V3 OSF1+V4 SunOS+5}
+
+# whether we should do a given OS by default
+set os_dat(do,AIX+3)   1
+set os_dat(do,AIX+4)   1
+set os_dat(do,IRIX+5)  1
+set os_dat(do,IRIX+6)  1
+set os_dat(do,Linux+2) 1
+set os_dat(do,OSF1+V3) 1
+set os_dat(do,OSF1+V4) 1
+set os_dat(do,SunOS+5) 1
+
+# hosts for each operating system
+set os_dat(HOST,AIX+3)	 dorfer.fnal.gov
+set os_dat(HOST,AIX+4)	 dcdmwm.fnal.gov
+set os_dat(HOST,IRIX+5)	 dcdlaa.fnal.gov
+set os_dat(HOST,IRIX+6)	 condor.fnal.gov
+set os_dat(HOST,OSF1+V3) outland.fnal.gov
+set os_dat(HOST,OSF1+V4) enterprise.fnal.gov
+set os_dat(HOST,SunOS+5) boise.fnal.gov
+set os_dat(HOST,Linux+2) trocious.fnal.gov
+
+#
+# Environment variables to pass in
+#
+
+array set cmd_menu {
+    { 1 cd}	 	  {cmd_parallel  "cd %D"}
+    {interrupt all}	  {cmd_parallel  "\x003"}
+    {exit} 		  {cmd_parallel  "exit"; after 5000 exit}
+}
+
+cmd_return_takesturns
