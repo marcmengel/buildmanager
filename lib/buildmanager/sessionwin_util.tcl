@@ -118,8 +118,10 @@ proc InitExpectText {} {
 	}
     }
 
-    # control c needs to work!
+    # control c,x,v need to work!
     bind ExpectText <Control-Key-c> 	{sendchars %W "\x003"}
+    bind ExpectText <Control-Key-x> 	{sendchars %W "\x018"}
+    bind ExpectText <Control-Key-v> 	{sendchars %W "\x016"}
 
     # xterm mouse button 2 emulation
     #

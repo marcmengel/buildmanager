@@ -7,6 +7,7 @@ proc cmd_substitute {string s} {
     set productroot [productroot $os_dat(s2f,$s)]
     set dirname [file dirname $productroot]
     set tail [file tail $productroot]
+    regsub -all {%%} $result {_%%_} result
     regsub -all {%D} $result $productroot result
     regsub -all {%d} $result $dirname result
     regsub -all {%T} $result $tail result
@@ -16,6 +17,7 @@ proc cmd_substitute {string s} {
     regsub -all {%P} $result $product result
     regsub -all {%V} $result $version result
     regsub -all {%R} $result $releasetarget result
+    regsub -all {_%%_} $result {%} result
     return $result
 }
 
