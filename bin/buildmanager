@@ -13,6 +13,8 @@ set logname $env(USER)
 proc updateflavorbuttons { w w2 } {
     global host_dat bwcount
 
+    set row 0
+    set col 1
     foreach host $host_dat(LIST) {
         incr bwcount
         set bw $w.b_$bwcount
@@ -20,10 +22,16 @@ proc updateflavorbuttons { w w2 } {
         if { ![info exists host_dat(h2bw,$host)] } {
 	    checkbutton $bw -text "$host" \
 		    -variable "host_dat(do,$host)" \
-		    -selectcolor green
-	    pack $bw -side left
+		    -selectcolor green \
+		    -width 12
 	    set host_dat(h2bw,$host) $bw
 	}
+	grid configure $bw -column $col -row $row -sticky e
+	set col [expr $col + 1]
+        if { $col > 6 } {
+           set row [expr $row + 1]
+           set col 1
+        }
     }
 }
 
@@ -101,6 +109,11 @@ proc init {} {
     global os_dat sw_dat host_dat
     global promptre product version 
     global debug_state
+
+    if { "[lindex $argv 0]" == "-?" } {
+	puts {usage: buildmanager [-v] [-h host_list_file] [product version]}
+        exit 0
+    }
        
     if { [lindex $argv 0] == "-debug_state" } {
 	set argv [lrange $argv 1 end]
@@ -108,7 +121,8 @@ proc init {} {
     } else {
 	set debug_state 0
     }
-    if { [lindex $argv 0] == "-verbose" } {
+
+    if { "[lindex $argv 0]" == "-v" } {
 	set argv [lrange $argv 1 end]
     } else {
 	log_user 0
@@ -116,6 +130,14 @@ proc init {} {
 
     cmd_return_takesturns
     getconfiginfo
+
+
+    if { "[lindex $argv 0]" == "-h" } {
+  	file_change_hosts [lindex $argv 1]
+	set argv [lrange $argv 2 end]
+    }
+
+    # remaining args must be product, version.
 
     if { [llength $argv ] > 0} {
 	set product [lindex $argv 0]
@@ -134,12 +156,12 @@ proc init {} {
     frame .flavors
     vscrollframe .hosts
 
-    pack .menubar .cmd .flavors -side top -expand 0 -fill x
+    pack .menubar .cmd .flavors -side top -expand 0 -fill x -anchor e
     pack .hosts -side top -expand 1 -fill both
 
     button .flavors.update -text "Update" \
 		    -command {updatehostwindows .hosts.f}
-    pack .flavors.update -side left
+    grid configure .flavors.update -row 0 -column 0
     updateflavorbuttons .flavors .hosts.f
     getlogininfo "Initial login"
     update
