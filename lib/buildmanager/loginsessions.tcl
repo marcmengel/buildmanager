@@ -131,6 +131,14 @@ proc newloginsessions { newsessions } {
 		if {[llength $logsessions] > 0} {
 		    exp_continue
 		}
+	    } 
+	    -i logsessions -re {\[[0-9]*;1f}	{ 
+		# the pc rlogin toy sends cursor address escapes...
+		set s $expect_out(spawn_id)
+		set timeouts($s) 0
+	        regsub {\[[0-9]*;1f} $expect_out(buffer) "\r\n" expect_out(buffer)
+		update_bytes
+		exp_continue
 	    }
 	    -i logsessions -re "\[\r\n\]+"	{ 
 		set s $expect_out(spawn_id)

@@ -12,6 +12,8 @@
 # They also maintian
 #   sessionlist			List of expect session_id's we're using
 #
+ 
+source vt100.tcl
 
 set sw_dat(verbose) 0
 set sw_dat(fixecho) 0
@@ -29,74 +31,16 @@ proc sendchars { w string } {
     }
 }
 
+
 proc rcvchars { w string } {
     global sw_dat
+    global mtags
+    global termline
     global taglist
 
-    catch {$w.v.t mark set insert end}
-    if { ![info exists taglist] } { set taglist {} }
-    if { $sw_dat(verbose) } {puts "rcvchars |$string|"}
-    if { $sw_dat(fixecho) && "$string" == "$sw_dat(sent_last,$w)" } {
-	# echo-ed chars, ignore
-    } else {
-	if { $sw_dat(verbose) } {puts "doing $w.v.t insert end $string"}
-
-	# collapse carriage-return/newline stuff before inserting
-	regsub -all "\[\r\n\]+" $string "\n" string
-
-	# stty erase with space setting
-	while { [ regsub "^\b \b" $string {} string ] } {
-	     catch {$w.v.t delete insert-1c}
-	}
-	if { [ regsub "\a" $string {} string ] } {
-	    catch {
-		    $w.v.t configure -background red
-		    after 100 "$w.v.t configure -background {#d9d9d9}"
-	    }
-	}
-	while { [ regsub "\a" $string {} string ] } {
-	}
-        # eat overstrikes
-        while { [regsub -all "\[^\b\]\b" $string {} string ] } {
-        }
-	while { [ regsub "^\b" $string {} string ] } {
-	     catch {$w.v.t mark set insert insert-1c}
-	}
-       
-        set escapepat "(\[^\x1b\]*)(\x1b\\\[\[0-9;\]*\[a-zA-z\])" 
-	while {  [ regexp $escapepat $string full before escape ] } {
-            regsub "\x1b" $escape {<ESC>} printit
-            # puts "saw escape $printit"
-
-	    catch {
-		$w.v.t insert insert $before $taglist
-            }
-            regsub $escapepat $string {} string
-	    if { $escape == "\x1b\[0m" || $escape == "\x1b\[m" } {
-	        set taglist {}
-	    }
-	    if { $escape == "\x1b\[1m" } {
-		    lappend taglist bold
-	    }
-	    if { $escape == "\x1b\[4m" } {
-	    }
-	    if { $escape == "\x1b\[24;1H" } {
-		$w.v.t mark set insert {insert linestart}
-	    }
-	    if { $escape == "\x1b\[K" } {
-		$w.v.t delete insert {insert lineend}
-	    }
-	    if { $escape == "\x1b\[7m" } {
-		    lappend taglist rev
-	    }
-	}
-	catch {
-	    $w.v.t insert insert $string $taglist
-	    $w.v.t see end
-	}
-	append sw_dat(rcvd_buf,$w) $string
-	flush_sent $w
-    }
+    vt100recv $w.v.t $string
+    append sw_dat(rcvd_buf,$w) $string
+    flush_sent $w
 }
 
 proc toggle_logging { w } {
@@ -280,3 +224,5 @@ proc setstate { s txt } {
     set sw_dat(state,$s) $txt
     $w.l3 configure -text $txt
 }
+
+puts "here!"
