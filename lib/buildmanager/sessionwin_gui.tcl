@@ -55,6 +55,8 @@ if {![winfo exists $w.v.t]} {text $w.v.t}
  $w.v.t configure -height 5 -width "80" -yscrollcommand "$w.v.sb set"
 catch "$w.v.t tag add sel"
  $w.v.t tag configure sel -background "#c3c3c3" -borderwidth "1" -foreground "Black" -relief "raised"
+ $w.v.t tag configure bold -foreground red -borderwidth "1"
+ $w.v.t tag configure rev -foreground grey -background black
 
 
 pack configure $w.v.t -in $w.v -anchor center -expand 1 -fill both -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
