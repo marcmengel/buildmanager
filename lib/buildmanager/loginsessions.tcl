@@ -31,6 +31,7 @@ proc newloginsessions { newsessions } {
     foreach s $newsessions {
         set w $sw_dat(s2w,$s)
 	set timeouts($s) 0
+        set pwprompts($s) 0
         set flavor $os_dat(w2f,$w)
 	set cmdlist($s) {}
 	# lappend cmdlist($s) "exec /bin/sh"
@@ -77,7 +78,7 @@ proc newloginsessions { newsessions } {
 	setstatus $s Login
     }
 
-    set logfail {([Ii]ncorrect|[Uu]nkown|[Uu]nable)}
+    set logfail {([Ii]ncorrect|[Uu]nkown)}
     set timesasked 0
     
     set logsessions $newsessions
@@ -111,6 +112,12 @@ proc newloginsessions { newsessions } {
 		    set s $expect_out(spawn_id)
 	            set timeouts($s) 0
 		    update_bytes
+		    incr pwprompts($s)
+		    if {$pwprompts($s) > 2} {
+			update
+		        set host $sw_dat(s2h,$s)
+			getlogininfo "Login failed on host $host, please re-enter login info"
+                    }
 		    exp_send -i $s "$password\r"
 		    exp_continue 
 	    }
