@@ -1,0 +1,5 @@
+This is the buildmanager product, version v1_0
+
+It supports setting up a cluster of build machines, and starting
+login sessions on each machine, with commands runnable on all systems
+simultaneously, taking turns, or interaction with individual hosts.
