@@ -16,7 +16,6 @@ proc updateflavorbuttons { w w2 } {
         if { ![info exists os_dat(f2bw,$flavor)] } {
 	    checkbutton $bw -text "$flavor" \
 		    -variable "os_dat(do,$flavor)" \
-		    -command "updatehostwindows $w2" \
 		    -selectcolor green
 	    pack $bw -side left
 	    set os_dat(f2bw,$flavor) $bw
@@ -106,6 +105,7 @@ proc init {} {
 	log_user 0
     }
 
+    cmd_return_takesturns
     getconfiginfo
 
     if { [llength $argv ] > 0} {
@@ -128,6 +128,9 @@ proc init {} {
     pack .menubar .cmd .flavors -side top -expand 0 -fill x
     pack .hosts -side top -expand 1 -fill both
 
+    button .flavors.update -text "Update" \
+		    -command {updatehostwindows .hosts.f}
+    pack .flavors.update -side left
     updateflavorbuttons .flavors .hosts.f
     getlogininfo "Initial login"
     update

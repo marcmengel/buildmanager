@@ -67,7 +67,7 @@ proc newloginsessions { newsessions } {
 	setstatus $s Login
     }
 
-    set logfail {([Ii]ncorrect|[In]valid|[Uu]nkown|[Uu]nable)}
+    set logfail {([Ii]ncorrect|[Uu]nkown|[Uu]nable)}
     set timesasked 0
     
     set logsessions $newsessions

@@ -9,7 +9,7 @@ wm transient $w .
 
 # ---------------- Label  $w.m1 ---------------------
 if {![winfo exists $w.m1]} {message $w.m1}
- $w.m1 configure -textvariable login_reason
+ $w.m1 configure -textvariable login_reason -width 140
 
 # ---------------- Entry  $w.e4 ---------------------
 if {![winfo exists $w.e4]} {entry $w.e4}

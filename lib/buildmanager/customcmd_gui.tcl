@@ -45,9 +45,8 @@ pack configure $w.l -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0
 pack configure $w.e -in $w -anchor center -expand 1 -fill x -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
 pack configure $w.b5 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
 # ----------------- Bindings ---------------------------
+do_cmd_bindings $w
 bind $w.e <Key-F1> {puts [%W get];catch [%W get]}
-bind $w.e <Key-KP_Enter> {cmd_taketurns [%W get] $sessionlist}
-bind $w.e <Key-Return> {%W selection range 0 end; cmd_parallel [%W get]}
 bind $w.e <Key-Down> cmd_next
 bind $w.e <Key-Up> cmd_previous
 }

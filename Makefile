@@ -23,10 +23,10 @@ PREFIX=$(DEFAULT_PREFIX)
       UPS_STYLE=new
             PROD=buildmanager
      PRODUCT_DIR=BUILDMANAGER_DIR
-            VERS=v1_2
-          DEPEND=-u "< expect v5_21 $(FLAVOR)"
+            VERS=v1_3
+          DEPEND=-u "< expect v5_25 $(FLAVOR)"
   TABLE_FILE_DIR=ups
-      TABLE_FILE=action.table
+      TABLE_FILE=$(PROD).table
            CHAIN=development
       UPS_SUBDIR=ups
           FLAVOR=$(DEFAULT_NULL_FLAVOR)
@@ -51,7 +51,7 @@ ADDDIRS =.
 ADDFILES=
 ADDEMPTY=
   ADDCMD=
-   LOCAL=/usr/products/$(OS)$(CUST)/$(PROD)/$(VERS)$(QUALS)
+   LOCAL=/fnal/ups/$(PROD)/$(VERS)$(QUALS)/$(OS)$(CUST)
  DOCROOT=/afs/fnal/files/docs/products/$(PROD)
 
 
@@ -214,13 +214,13 @@ new_delproduct:
 # 
 build_n_test:
 	set +e						;\
-	. /usr/local/etc/setups.sh			;\
-	PRODUCTS="$(DPRODUCTS) $$PRODUCTS" 		;\
-	export PRODUCTS					;\
-	make FLAVOR=$(FLAVOR) declare			;\
-	setup -b -f $(FLAVOR) $(PROD) $(VERS)||true	;\
+	UPS_SHELL=sh; export UPS_SHELL			;\
+	. `ups setup ups`				;\
+	setup -q build? -f $(FLAVOR) $(PROD) 		\
+		-r $(DIR) -M $(TABLE_FILE_DIR) -m $(TABLE_FILE)	;\
 	make all 					;\
-	setup -f $(FLAVOR) $(PROD) $(VERS)||true	;\
+	setup -f $(FLAVOR) $(PROD) 			\
+		-r $(DIR) -M $(TABLE_FILE_DIR) -m $(TABLE_FILE)	;\
 	make test
 
 #
@@ -394,11 +394,9 @@ OLD_UPS_EXIST= \
 
 NEW_UPS_EXIST=\
 	echo $(UPS_DIR)/bin/ups exist \
-		-z $(DPRODUCTS) \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS);\
 	$(UPS_DIR)/bin/ups exist \
-		-z $(DPRODUCTS) \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 

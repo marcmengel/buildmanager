@@ -16,7 +16,7 @@ proc getconfiginfo {} {
 
     foreach f $configfiles {
 	if { [file exists $f] } {
-	    #puts "getting config info from $f"
+	    puts "getting config info from $f"
 	    uplevel #0 "source $f"
 	}
     }

@@ -85,3 +85,17 @@ proc cmd_next {} {
     .cmd.e insert 0 [lindex $history $histslot]
 }
 
+proc cmd_return_takesturns {} {
+    proc do_cmd_bindings { w } {
+    bind $w.e <Key-Return> {cmd_taketurns [%W get] $sessionlist}
+    bind $w.e <Key-KP_Enter> {%W selection range 0 end; cmd_parallel [%W get]}
+    }
+}
+
+proc cmd_return_parallel {} {
+    proc do_cmd_bindings { w } {
+    bind $w.e <Key-KP_Enter> {cmd_taketurns [%W get] $sessionlist}
+    bind $w.e <Key-Return> {%W selection range 0 end; cmd_parallel [%W get]}
+    }
+}
+
