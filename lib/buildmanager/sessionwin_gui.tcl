@@ -30,6 +30,10 @@ if {![winfo exists $w.b]} {button $w.b}
      $w.v.t see end \
  "
 
+# ---------------- Checkbutton $w.b2 --------------------
+if {![winfo exists $w.b2]} {checkbutton $w.b2}
+$w.b2 configure -text "Log" -command "toggle_logging $w"
+
 # ---------------- Frame  $w.v ---------------------
 if {![winfo exists $w.v]} {frame $w.v}
  $w.v configure -borderwidth "4" -relief "ridge"
@@ -54,6 +58,7 @@ pack configure $w.l1 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 
 pack configure $w.l2 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 pack configure $w.l3 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 pack configure $w.l4 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
-pack configure $w.b -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
+pack configure $w.b2 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
+pack configure $w.b -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side right
 # ----------------- Bindings ---------------------------
 }

@@ -60,7 +60,11 @@ proc vscrollframe { w } {
 		} else {
 		    place configure $w.f -x 20 -y [expr 0 - $off]
 		}
-		$w configure -width [expr $w1 + 20]
+		if { [winfo width $w] <= $w1 } {
+		    $w configure -width [expr $w1 + 20]
+		} else {
+		    place configure $w.f -width [expr [winfo width $w] - 20]
+		}
 	    }
         }
 

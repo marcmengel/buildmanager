@@ -7,6 +7,7 @@
 #   sw_dat(rcvd_buf,win)	Chars received
 #   sw_dat(logging,win)		flag if this window is being logged 
 #   sw_dat(log_fd,win)		file descriptor to log upon
+#   sw_dat(w2s,win)		session id attached to win
 #
 # They also maintian
 #   sessionlist			List of expect session_id's we're using
@@ -54,6 +55,16 @@ proc rcvchars { w string } {
     }
 }
 
+proc toggle_logging { w } {
+     global sw_dat 
+
+     if { !$sw_dat(logging,$w)} {
+	start_logging $w  "$sw_dat(s2h,$sw_dat(w2s,$w)).log"
+     } else {
+	stop_logging $w 
+     }
+}
+
 proc start_logging { w logfile } {
      global sw_dat
 
@@ -72,7 +83,7 @@ proc stop_logging { w } {
      if {$sw_dat(logging,$w)} {
 	 flush_sent $w
 	 flush_rcvd $w
-	 close sw_dat($log_fd,$w)
+	 close $sw_dat(log_fd,$w)
 	 set sw_dat(logging,$w) 0
      }
 }
@@ -82,7 +93,7 @@ proc flush_rcvd { w } {
 
      if { "$sw_dat(rcvd_buf,$w)" != ""} {
 	 if { $sw_dat(logging,$w) }  {
-	     puts $log_fd($w) $sw_dat(rcvd_buf,$w)
+	     puts -nonewline $sw_dat(log_fd,$w) $sw_dat(rcvd_buf,$w)
 	 }
 	 set sw_dat(rcvd_buf,$w) {}
      }
@@ -92,8 +103,8 @@ proc flush_sent { w } {
      global sw_dat
 
      if {$sw_dat(logging,$w) && ("$sw_dat(sent_buf,$w)" != "" || "$sw_dat(sent_last,$w)" != "")} {
-	 puts $log_fd($w) $sw_dat(sent_buf,$w)
-	 puts $log_fd($w) $sent_last$(w)
+	 puts -nonewline $sw_dat(log_fd,$w) $sw_dat(sent_buf,$w)
+	 # puts -nonewline $sw_dat(log_fd,$w) $sw_dat(sent_last,$w)
      }
      set sw_dat(sent_buf,$w) {}
      set sw_dat(sent_last,$w) {}

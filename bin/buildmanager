@@ -125,7 +125,7 @@ proc init {} {
     frame .flavors
     vscrollframe .hosts
 
-    pack .menubar .cmd .flavors -side top -expand 0 -fill x
+    pack .menubar .cmd .flavors -side top -expand 1 -fill x
     pack .hosts -side top -expand 1 -fill both
 
     updateflavorbuttons .flavors .hosts.f
