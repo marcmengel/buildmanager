@@ -1,4 +1,13 @@
 
+proc vt100init { t } {
+    global vt100_taglist
+    $t delete 1.0 end
+    $t mark set vt100cursor 1.0
+    $t mark set vt100origin 1.0
+    set vt100_taglist($t) {}
+}
+
+
 set vt100_mtags(0) {}
 set vt100_mtags(1) bold
 set vt100_mtags(2) bold
@@ -9,71 +18,39 @@ set vt100_mtags(6) rev
 set vt100_mtags(7) rev
 set vt100_mtags(8) rev
 
-set vt100line {                                                                                }
-
-
-proc vt100init { t } {
-    global vt100line
-    global vt100_taglist
-
-    $t delete 0.0 end
-    for { set y 0 } { $y < 23 } { incr y } {
-	$t insert end "$vt100line\n"
-    }
-    $t insert end "$vt100line"
-    $t mark set vtcursor 0.1
-    set vt100_taglist($t) {}
-}
-
-proc vt100pad { t } {
-    global vt100line
-
-    for { set l 1 } { $l < 25 } {incr l } {
-	set len [string length [$t get "end - $l lines" "end - $l lines lineend"]]
-        if { $len < 80 } {
-	    $t insert "end - $l lines lineend" [string range $vt100line $len 79]
-	}
-    }
-}
 
 proc vt100string { t string } {
     global vt100_taglist
 	
     set slen [string length $string]
-    set llen [string length [$t get vtcursor {vtcursor lineend}]]
-    while { $llen < $slen} {
-        set s1 [string range $string 0 [expr $llen - 1]]
-	vt100string $t $s1
-        vt100cr $t
-        vt100newline $t
-	set string [string range $string $llen $slen]
-	set slen [string length $string]
-	set llen [string length [$t get vtcursor {vtcursor lineend}]]
-	if {$llen < 80} {
-	    set slen 0
-        }
-    }
-    $t delete vtcursor "vtcursor + $slen chars"
-    $t insert vtcursor $string $vt100_taglist($t)
-    $t mark set insert vtcursor
-    $t see vtcursor
+    set llen [string length [$t get vt100cursor {vt100cursor lineend}]]
+    if { $llen < $slen } { set slen $llen }
+    $t delete vt100cursor "vt100cursor + $slen chars"
+    $t insert vt100cursor $string $vt100_taglist($t)
+    $t mark set insert vt100cursor
+    $t see vt100cursor
 }
 
 proc vt100newline { t } {
-    if {[$t compare {vtcursor + 1 lines} == end]} {
+    if {[$t compare {vt100cursor + 1 lines} == end]} {
         vt100scroll $t
+    } else {
+	vt100move rel $t 0 1
     }
-    $t mark set vtcursor "vtcursor +1 lines"
 }
 
 proc vt100scroll { t } {
     global vt100line
 
-    $t insert end "\n$vt100line"
+    $t insert end "\n"
+    $t mark set vt100origin "end -24 lines linestart"
+    # puts "vt100scroll vt100origin: [$t index vt100origin] end: [$t index end]"
+    $t see vt100origin
+    $t see end
 }
 
-proc vt100cr { t } { $t mark set vtcursor "vtcursor linestart" }
-proc vt100bs { t } { $t mark set vtcursor "vtcursor -1 chars" }
+proc vt100cr { t } { $t mark set vt100cursor "vt100cursor linestart" }
+proc vt100bs { t } { $t mark set vt100cursor "vt100cursor -1 chars" }
 proc vt100bel { t } {
     catch {
 	$t configure -background red
@@ -91,54 +68,70 @@ proc vt100esc { t escape first x y letter } {
 
     switch "$first$letter" {
     {(B}  { # ignore }
+    {[@}  { 
+ 	    #insert...
+
+	    set save [$t index vt100cursor]
+	    if { $y == 0} { set y 1 }
+	    set char [$t get vt100cursor "vt100cursor + $y chars" ]
+            $t insert vt100cursor "$char"
+            $t mark set vt100cursor $save
+          }
+    {[L}  {
+	    if { $y == 0} { set y 1 }
+	    set save1 [$t index vt100cursor]
+	    set save2 [$t index vt100origin]
+	    $t insert vt100cursor "\n"
+            $t mark set vt100cursor $save1
+            $t mark set vt100origin $save2
+          }
     {[H}	-
     {[f}  {
 	    if { $y == 0} { set y 1 }
 	    if { $x == 0} { set x 1 }
-	    set x [expr $x - 1]
-	    # cursor addressing, jump to the top...
-	    set ybase [expr int([$t index end]) - 25]
-	    $t mark set vtcursor [expr $y + $ybase].$x
-	    $t mark set insert vtcursor
+            vt100move abs $t $x $y
 	}
     {[A}	{
 	    if { $y == 0} { set y 1 }
-	    if { [$t compare "vtcursor" > {end - 24 lines}]} {
-		$t mark set vtcursor "vtcursor-${x}lines"
-            }
+	    vt100move rel $t 0 -${y}
 	}
     {[B}	{
 	    if { $y == 0} { set y 1 }
-	    if { [$t compare "vtcursor+${x}lines" < end]} {
-		$t mark set vtcursor "vtcursor+${x}lines"
-            }
+	    vt100move rel $t 0 ${y}
 	}
     {[C}	{
 	    if { $y == 0} { set y 1 }
-	    $t mark set vtcursor "vtcursor+${x}chars"
+            vt100move rel $t $y 0
 	}
     {[D}	{
 	    if { $y == 0} { set y 1 }
-	    $t mark set vtcursor "vtcursor-${x}chars"
+            vt100move rel $t -$y 0
 	}
     {[J}	{
+	    set save [$t index vt100origin]
 	    switch $y {
-	    0 { $t delete vtcursor end }
-	    1 { $t delete 1.0 vtcursor }
+	    0 { 
+		$t delete vt100cursor end 
+		vt100pad $t
+              }
+	    1 { 
+ 		$t delete vt100origin vt100cursor 
+		vt100pad $t
+              }
 	    2 { 
-		$t delete 1.0 end 
-		vt100init $t 
+		$t delete $save end 
+		vt100pad $t
 	      }
 	    }
-	    vt100pad $t
+	    $t mark set vt100cursor $save
+	    $t mark set vt100origin $save
 	}
     {[K}	{
 	    switch $y {
-	    0 { $t delete vtcursor {vtcursor lineend}}
-	    1 { $t delete {vtcursor linestart}  lineend}
-	    2 { $t delete {vtcursor linestart} {vtcursor lineend}}
+	    0 { $t delete vt100cursor {vt100cursor lineend}}
+	    1 { $t delete {vt100cursor linestart}  lineend}
+	    2 { $t delete {vt100cursor linestart} {vt100cursor lineend}}
 	    }
-	    vt100pad $t
 	}
     {[m}   {
 	    if {$y < 1} {
@@ -148,11 +141,17 @@ proc vt100esc { t escape first x y letter } {
 		lappend vt100_taglist($t) $vt100_mtags($x)
 	    }
 	}
+    {[P}	{
+	    if { $y == 0} { set y 1 }
+	    $t delete vt100cursor "vt100cursor +$y chars"
+        }
     default {
 	# puts "unknown escape $escape"
 	}
     }
+    $t mark set vt100origin "vt100origin linestart"
 }
+
 
 proc vt100recv { t string } {
     global vt100_taglist
@@ -162,7 +161,7 @@ proc vt100recv { t string } {
     }
 
     set plainpat "(\[^\t\n\r\a\b\x1b\x0f\]*)(\[\t\n\r\a\b\x1b\x0f\])"
-    set escapepat {((\[|O|\()\?*([0-9]*)(;*([0-9]*))([a-zA-Z]))} 
+    set escapepat {((\[|O|\()\?*([0-9]*)(;*([0-9]*))([a-zA-Z@]))} 
     
     while { [regexp $plainpat $string full before char] } {
 
@@ -189,4 +188,82 @@ proc vt100recv { t string } {
     catch {
 	vt100string $t $string
     }
+}
+
+set vt100lines {
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+}
+set vt100spaces {                                                                                   }
+
+proc vt100move { relabs t x y } {
+    global vt100spaces vt100lines
+
+    $t mark set vt100origin "vt100origin linestart"
+    # puts "in  vt100move { relabs: $relabs x: $x y: $y }  vt100origin: [$t index vt100origin] end: [$t index end]"
+
+    if { $relabs == "rel" } {
+        regexp {([0-9]*)\.([0-9]*)} [$t index vt100cursor] full by bx
+        set x [expr $x + $bx]
+        set y [expr $y + $by]
+    } else { 
+	regexp {([0-9]*)\.([0-9]*)} [$t index vt100origin] full by bx
+	set x [expr $x + $bx - 1]
+	set y [expr $y + $by - 1]
+    }
+
+    #
+    # pad lines and spaces needed to get to coordinates
+    #
+    set diff [expr int( $y - [$t index end])]
+    if { $diff > 0 } {
+        $t insert end [string range $vt100lines 1 $diff]
+    }
+
+    set diff [expr $x - [string length [$t get $y.0 "$y.0 lineend"]]]
+    if { $diff > 0 } {
+        $t insert "$y.0 lineend" [string range $vt100spaces 1 $diff]
+    }
+
+    $t mark set vt100cursor $y.$x
+    $t mark set insert vt100cursor
+
+    # puts "out vt100move x: $x y: $y vt100origin: [$t index vt100origin] end: [$t index end]"
+}
+
+proc vt100pad { t } {
+    global vt100lines
+
+    set save1 [$t index vt100cursor]
+    set save2 [$t index vt100origin]
+    set lines [expr int( 25 - ([$t index end] - [$t index vt100origin]))]
+    $t insert end [string range $vt100lines 1 $lines]
+    $t see end
+    $t mark set vt100cursor $save1
+    $t mark set vt100origin $save2
 }
