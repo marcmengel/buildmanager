@@ -7,15 +7,9 @@
 SHELL=/bin/sh
 
 #------------------------------------------------------------------
-# DIR is a "proper" name for the current directory (e.g. the name visible
-# all over the cluster)  We try to undo common automount name munging here,
-# and correct afs paths to read-only volume paths, etc.   This way we get a
-# name we can use in ups declares, and when rsh-ing to another node
-# to do "cmd addproduct", etc.
-DIR=`pwd | sed	-e 's|^/tmp_mnt||' \
-	   	-e 's|^/export||' \
-	   	-e 's|^/afs/\.fnal\.gov|/afs/fnal.gov|' \
-		-e 's|^/products|/usr&|'`
+# DIR is a "proper" name for the current directory 
+DIR=$(DEFAULT_DIR)
+PREFIX=$(DEFAULT_PREFIX)
 
 #------------------------------------------------------------------
 # Variables for ups declaration and setup of product
@@ -26,18 +20,21 @@ DIR=`pwd | sed	-e 's|^/tmp_mnt||' \
 # Qualifiers, and customization information, which is also used for 
 # "cmd addproduct", and finally the distribution file name.
 # this section may change in later ups|addproduct incarnations
+      UPS_STYLE=old
             PROD=buildmanager
      PRODUCT_DIR=BUILDMANAGER_DIR
             VERS=v1_1
           DEPEND=-u "< expect v5_21 $(FLAVOR)"
+  TABLE_FILE_DIR=ups
+      TABLE_FILE=action.table
            CHAIN=development
       UPS_SUBDIR=ups
           FLAVOR=$(OS)$(CUST)$(QUALS)
-              OS=`funame -s`
+              OS=$(DEFAULT_OS)
            QUALS=
-            CUST=+`funame -r | sed -e 's|\..*||'`
+            CUST=$(DEFAULT_CUST)
  ADDPRODUCT_HOST=dcdsv0
-DISTRIBUTIONFILE="$(DIR)/../$(FLAVOR).tar"
+DISTRIBUTIONFILE="$(DEFAULT_DISTRIBFILE)"
 
 #------------------------------------------------------------------
 # Files to include in Distribution
@@ -57,11 +54,6 @@ ADDEMPTY=
    LOCAL=/usr/products/$(OS)$(CUST)/$(PROD)/$(VERS)$(QUALS)
  DOCROOT=/afs/fnal/files/docs/products/$(PROD)
 
-#------------------------------------------------------------------
-# --prefix=$(PREFIX) for gnu configure tools
-# if you use this, you should uncomment the appropriate sections
-# in the template ups/* scripts
-PREFIX=/usr/local/products/buildmanager/$(VERS)
 
 #
 #------------------------------------------------------------------
@@ -84,12 +76,16 @@ spotless: clean
 
 # we indirect this a level so we can customize it for bundle products
 
-declare: real_declare
+declare: $(UPS_STYLE)_declare
+undeclare: $(UPS_STYLE)_undeclare
+addproduct: $(UPS_STYLE)_addproduct
+delproduct: $(UPS_STYLE)_delproduct
+autokits: $(UPS_STYLE)_autokits
 
 #---------------------------------------------------------------------------
 # 		*** Do not change anything below this line: ***
 #     it will go away if you # update the makefile from the templates.
-# - - - - - - - - - - - - - cut here - - - - - - - - - - - - -
+# - - - - - - - - - - - - - - cut here - - - - - - - - - - - - - - - - - -
 #
 #---------------------------------------------------------------------------
 # Standard Product Distribution/Declaration Targets
@@ -103,8 +99,7 @@ declare: real_declare
 # file list on stdin, but something obvious like:
 #     $(LISTALL) | xargs tar cvf - 
 # doesn't work on all the platforms; tar thinks its done when it hits
-# the end of the first one, and "tar rvf" doesn't work right on OSF1, so
-# we do the following:
+# the end of the first one, and "tar rvf" doesn't work right on OSF1, so:
 # * make an empty file .header
 # * make an initial tarfile by adding .header
 # * then go through $(LISTALL) output and add files to the tarfile a few dozen
@@ -112,7 +107,7 @@ declare: real_declare
 # * Finally echo the filename and do a table of contents to show it worked
 #
 distribution: clean $(UPS_SUBDIR)/declare.dat .manifest
-	echo "creating $(DISTRIBUTIONFILE)..."
+	@echo "creating $(DISTRIBUTIONFILE)..."
 	@: > .header
 	@tar cf $(DISTRIBUTIONFILE) .header
 	@$(LISTALL) | xargs tar uf $(DISTRIBUTIONFILE)
@@ -121,22 +116,8 @@ distribution: clean $(UPS_SUBDIR)/declare.dat .manifest
 	@touch $@
 
 kits: addproduct
-
 unkits: delproduct
 
-# addproduct -- add the distribution file to a distribution platform, 
-# and clean out the local copy
-#
-addproduct: dproducts_is_set distribution
-	$(ADDPRODUCT)
-	rm $(DISTRIBUTIONFILE)
-
-autokits: dproducts_is_set distribution
-	echo "Press enter to update database? \c"
-	read line
-	$(ADDPRODUCT)
-	rm $(DISTRIBUTIONFILE)
-	
 # local --  Make a local copy of the product directly
 # we do this by running $(LISTALL) and having cpio make a direct copy
 # then we cd over there and do a check_manifest to make sure the copy 
@@ -148,29 +129,73 @@ local: clean $(UPS_SUBDIR)/declare.dat .manifest
 	cd $(LOCAL); make check_manifest
 
 autolocal: dproducts_is_set distribution
-	echo "Press enter to update database? \c"
-	read line
+	@/bin/echo "Press enter to update database? \c"
+	@read line
 	test -d $(LOCAL) || mkdir -p $(LOCAL)
-	$(LISTALL) | cpio -dumpv $(LOCAL)
+	@$(LISTALL) | cpio -dumpv $(LOCAL)
 	cd $(LOCAL); make check_manifest
 
 install: local
+
+#====================== OLD UPS COMMANDS =====================
+# addproduct -- add the distribution file to a distribution platform, 
+# and clean out the local copy
+#
+old_addproduct: dproducts_is_set distribution
+	$(OLD_ADDPRODUCT)
+	rm $(DISTRIBUTIONFILE)
+
+old_autokits: dproducts_is_set distribution
+	@/bin/echo "Press enter to update database? \c"
+	@read line
+	$(OLD_ADDPRODUCT)
+	rm $(DISTRIBUTIONFILE)
 
 # declare -- declares or redeclares the product; first we check
 #        if its already declared and if so remove the existing declaration
 #	Finally we declare it, and do a ups list so you can see the
 #	declaration.
 #
-real_declare: dproducts_is_set $(UPS_SUBDIR)/Version
-	@($(UPS_EXIST) && $(UPS_UNDECLARE)) || true
-	@$(UPS_DECLARE)
-	@$(UPS_LIST)
+old_declare: dproducts_is_set $(UPS_SUBDIR)/Version
+	@($(OLD_UPS_EXIST) && $(OLD_UPS_UNDECLARE)) || true
+	@$(OLD_UPS_DECLARE)
+	@$(OLD_UPS_LIST)
 
-undeclare: dproducts_is_set $(UPS_SUBDIR)/Version 
-	$(UPS_UNDECLARE)
+old_undeclare: dproducts_is_set $(UPS_SUBDIR)/Version 
+	$(OLD_UPS_UNDECLARE)
 
-delproduct:
-	$(DELPRODUCT)
+old_delproduct:
+	$(OLD_DELPRODUCT)
+
+#====================== NEW UPS COMMANDS =====================
+# addproduct -- add the distribution file to a distribution platform, 
+# and clean out the local copy
+#
+new_addproduct: dproducts_is_set distribution
+	$(NEW_ADDPRODUCT)
+	rm $(DISTRIBUTIONFILE)
+
+new_autokits: dproducts_is_set distribution
+	@/bin/echo "Press enter to update database? \c"
+	@read line
+	$(NEW_ADDPRODUCT)
+	rm $(DISTRIBUTIONFILE)
+
+# declare -- declares or redeclares the product; first we check
+#        if its already declared and if so remove the existing declaration
+#	Finally we declare it, and do a ups list so you can see the
+#	declaration.
+#
+new_declare: dproducts_is_set $(UPS_SUBDIR)/Version
+	@($(NEW_UPS_EXIST) && $(NEW_UPS_UNDECLARE)) || true
+	@$(NEW_UPS_DECLARE) || true
+	@$(NEW_UPS_LIST)
+
+new_undeclare: dproducts_is_set $(UPS_SUBDIR)/Version 
+	$(NEW_UPS_UNDECLARE)
+
+new_delproduct:
+	$(NEW_DELPRODUCT)
 
 # this is the usual target for manually rebuilding the software if it's just
 # been checked out of the repository.  We declare it, set it up, and 
@@ -205,8 +230,13 @@ proddir_is_set: check_template_vars
 listall:
 	$(LISTALL)
 
-check_template_vars:
+# check extra vars when doing new ups...
+
+check_template_vars: check_common_vars check_$(UPS_STYLE)_vars
+
+check_common_vars:
 	@$(CHECKIT_DEF) ;\
+	checkit "$(UPS_STYLE)" "UPS_STYLE"		;\
 	checkit "$(ADDPRODUCT_HOST)" "ADDPRODUCT_HOST"	;\
 	checkit "$(CHAIN)" "CHAIN"			;\
 	checkit "$(DIR)" "DIR"				;\
@@ -222,16 +252,23 @@ check_template_vars:
 	checkit "$(VERS)" "VERS"			;\
 	checkit "$(VERSIONFILES)" "VERSIONFILES"	
 
+check_old_vars:
+
+check_new_vars:
+	@$(CHECKIT_DEF) ;\
+	checkit "$(TABLE_FILE)" "TABLE_FILE"		;\
+	checkit "$(TABLE_FILE)" "TABLE_FILE_DIR"	;\
+
 #---------------------------------------------------------------------------
 #
 $(UPS_SUBDIR)/declare.dat: FORCE
-	$(UPS_LIST) > $@
+	$(OLD_UPS_LIST) > $@
 
 $(UPS_SUBDIR)/Version:
 	echo $(VERS) > $(UPS_SUBDIR)/Version
 
 $(UPS_SUBDIR)/upd_files.dat:
-	echo "creating $@..."
+	@echo "creating $@..."
 	@ $(LISTALL) > $@
 
 #---------------------------------------------------------------------------
@@ -245,7 +282,7 @@ MANIFEST = $(LISTALL) | 				\
 		sort +1
 
 .manifest: FORCE
-	echo "creating .manifest..."
+	@echo "creating .manifest..."
 	@ $(MANIFEST) > $@
 
 check_manifest:
@@ -257,7 +294,7 @@ check_manifest:
 # Version change support
 #---------------------------------------------------------------------------
 setversion:
-	@echo "New version? \c"; read newvers; set -x;			\
+	@/bin/echo "New version? \c"; read newvers; set -x;		\
 	perl -pi.bak -e "s/$(VERS)/$$newvers/go;" $(VERSIONFILES) ;	\
 	cvs commit -m "marked as $$newvers";				\
 	cvs tag -F $$newvers  .
@@ -284,54 +321,116 @@ PRUNECVS =  '(' -name CVS -prune ')' -o ! -name .manifest ! -name .header
 # parenthesis) so the whole thing can be piped to other programs, etc.
 #
 LISTALL =  ( \
+    for d in  .manifest $(ADDEMPTY); do echo $$d; done; \
     test -z "$(ADDDIRS)" || find $(ADDDIRS) $(PRUNECVS) ! -type d -print; \
     test -z "$(ADDFILES)" || find . $(PRUNECVS) $(ADDFILES) ! -type d -print; \
-    test -z "$(ADDCMD)" || sh -c "$(ADDCMD)"; \
-    for d in $(ADDEMPTY) .manifest; do echo $$d; done )
+    test -z "$(ADDCMD)" || sh -c "$(ADDCMD)" \
+    )
 
 #---------------------------------------------------------------------------
 # Ugly Definitions for ups
 #---------------------------------------------------------------------------
 #
 
-#
-# since we don't assume FUE, we need to fake out what funame/ups flavor 
-# would give us...
+# Default names for things
+DEFAULT_DISTRIBFILE="$(DIR)/../$(PROD)$(FLAVOR)$(VERS).tar"
+DEFAULT_OS=`uname -s | sed -e 's/IRIX64/IRIX/'`
+
 # note the plus sign in DEFAULT_CUST is really part of the string, not
 # appending to some other value or anything.
-DEFAULT_OS=`uname -s | sed -e 's/IRIX64/IRIX/'`
 DEFAULT_CUST=+`((uname -s | grep AIX >/dev/null && uname -v)||uname -r) | \
 		sed -e 's|\..*||'`
 
+# We try to undo common automount name munging here,
+# and correct afs paths to read-only volume paths, etc.   This way we get a
+# name we can use in ups declares, and when rsh-ing to another node
+# to do "cmd addproduct", etc.
+DEFAULT_DIR=`pwd | sed	-e 's|^/tmp_mnt||' \
+	   	-e 's|^/export||' \
+	   	-e 's|^/afs/\.fnal\.gov|/afs/fnal.gov|' \
+		-e 's|^/products|/usr&|'`
+
+# ------ prefix support
+
+DEFAULT_PREFIX=/tmp/build-$(PROD)-$(VERS)-$(QUALS)
+
+build_prefix: proddir_is_set $(PREFIX)
+
+$(PREFIX):
+	ln -s $$$(PRODUCT_DIR) $(PREFIX)
+
+
+# In old ups, we need "-f IRIX+6+qual1+qual2"
+# in new ups, we need "-f IRIX+6 -q qual1+qual2"
+# if no qualifiers, we want *nothing*
+#
+QUALSEP=`case $(UPS_STYLE)$(QUALS) in \
+	 new) ;; \
+	 old) ;; \
+	 new*) echo ' -q ';; \
+	 old*) echo '+';; \
+	 esac`
+
 # These are all basic ups commands with loads of options.
-UPS_EXIST= \
-	PRODUCTS=$$DPRODUCTS \
+
+OLD_UPS_EXIST= \
 	$(UPS_DIR)/bin/ups_exist \
-		-f $(FLAVOR) \
-		$(PROD) $(VERS)
-UPS_UNDECLARE= \
-	PRODUCTS=$$DPRODUCTS \
-	$(UPS_DIR)/bin/ups_undeclare \
+		-z $$DPRODUCTS \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
-UPS_DECLARE= \
-	PRODUCTS=$$DPRODUCTS \
+NEW_UPS_EXIST=\
+	$(UPS_DIR)/bin/ups exist \
+		-z $$DPRODUCTS \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS)
+
+OLD_UPS_UNDECLARE= \
+	$(UPS_DIR)/bin/ups_undeclare \
+		-z $$DPRODUCTS \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS)
+
+NEW_UPS_UNDECLARE=\
+	$(UPS_DIR)/bin/ups undeclare \
+		-z $$DPRODUCTS \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS)
+
+OLD_UPS_DECLARE= \
 	$(UPS_DIR)/bin/ups_declare \
 		$(DEPEND) \
+		-z $$DPRODUCTS \
 		-U $(DIR)/$(UPS_SUBDIR) \
 		-r $(DIR) \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
-UPS_LIST= \
-	PRODUCTS=$$DPRODUCTS \
-	$(UPS_DIR)/bin/ups_list \
-		-la \
+NEW_UPS_DECLARE= \
+	$(UPS_DIR)/bin/ups declare \
+		-M $(TABLE_FILE_DIR) \
+		-m $(TABLE_FILE) \
+		-z $$DPRODUCTS \
+		-U $(UPS_SUBDIR) \
+		-r $(DIR) \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
-ADDPRODUCT = \
+OLD_UPS_LIST= \
+	$(UPS_DIR)/bin/ups_list \
+		-z $$DPRODUCTS \
+		-l \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS)
+
+NEW_UPS_LIST = \
+	$(UPS_DIR)/bin/ups_list \
+		-z $$DPRODUCTS \
+		-l \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS)
+
+OLD_ADDPRODUCT = \
     rsh $(ADDPRODUCT_HOST) /bin/sh -c "'\
 	. /usr/local/etc/setpath.sh ; \
 	. /usr/local/etc/setups.sh ; \
@@ -345,7 +444,13 @@ ADDPRODUCT = \
 		-v $(VERS) \
 		-y '"
 
-DELPRODUCT = \
+NEW_ADDPRODUCT = \
+	echo "There is no new addproduct yet!"
+
+NEW_DELPRODUCT = \
+	echo "There is no new delproduct yet!"
+
+OLD_DELPRODUCT = \
     rsh $(ADDPRODUCT_HOST) /bin/sh -c "'\
 	. /usr/local/etc/setpath.sh ; \
 	. /usr/local/etc/setups.sh ; \

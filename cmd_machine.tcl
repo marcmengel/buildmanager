@@ -77,7 +77,7 @@ proc clear_statepending {} {
     global sessionlist os_dat global history histslot
     global expect_out sw_dat statepending
 
-    foreach key [array keys statepending] {
+    foreach key [array names statepending] {
 	unset statepending($key)
     }
 }
