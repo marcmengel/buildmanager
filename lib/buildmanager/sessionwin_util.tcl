@@ -155,36 +155,36 @@ proc InitExpectText {} {
     bind ExpectText <Pause>		{sendchars %W "\x1b\[Ol"}
     bind ExpectText <Print>		{sendchars %W "\x1b\[28~"}
     bind ExpectText <Cancel>		{sendchars %W "\x1b\[29~"}
-    bind ExpectText <KP_0>		{sendcahrs %W "\x1bOp" }
-    bind ExpectText <KP_1>		{sendcahrs %W "\x1bOq" }
-    bind ExpectText <KP_2>		{sendcahrs %W "\x1bOr" }
-    bind ExpectText <KP_3>		{sendcahrs %W "\x1bOs" }
-    bind ExpectText <KP_4>		{sendcahrs %W "\x1bOt" }
-    bind ExpectText <KP_5>		{sendcahrs %W "\x1bOu" }
-    bind ExpectText <KP_6>		{sendcahrs %W "\x1bOv" }
-    bind ExpectText <KP_7>		{sendcahrs %W "\x1bOw" }
-    bind ExpectText <KP_8>		{sendcahrs %W "\x1bOx" }
-    bind ExpectText <KP_9>		{sendcahrs %W "\x1bOy" }
-    bind ExpectText <KP_Decimal>	{sendcahrs %W "\x1bOn" }
-    bind ExpectText <KP_Insert>		{sendcahrs %W "\x1b\[1~" }
-    bind ExpectText <KP_Home>		{sendcahrs %W "\x1b\[2~" }
-    bind ExpectText <KP_Prior>		{sendcahrs %W "\x1b\[3~" }
-    bind ExpectText <KP_Delete>		{sendcahrs %W "\x1b\[4~" }
-    bind ExpectText <KP_End>		{sendcahrs %W "\x1b\[5~" }
-    bind ExpectText <KP_Next>		{sendcahrs %W "\x1b\[6~" }
-    bind ExpectText <KP_Enter>		{sendcahrs %W "\x1bOM" }
-    bind ExpectText <F1>		{sendcahrs %W "\x1b\[17~" }
-    bind ExpectText <F2>		{sendcahrs %W "\x1b\[18~" }
-    bind ExpectText <F3>		{sendcahrs %W "\x1b\[19~" }
-    bind ExpectText <F4>		{sendcahrs %W "\x1b\[20~" }
-    bind ExpectText <F5>		{sendcahrs %W "\x1b\[21~" }
-    bind ExpectText <F6>		{sendcahrs %W "\x1b\[23~" }
-    bind ExpectText <F7>		{sendcahrs %W "\x1b\[24~" }
-    bind ExpectText <F8>		{sendcahrs %W "\x1b\[25~" }
-    bind ExpectText <F9>		{sendcahrs %W "\x1b\[26~" }
-    bind ExpectText <F10>		{sendcahrs %W "\x1b\[28~" }
-    bind ExpectText <F11>		{sendcahrs %W "\x1b\[29~" }
-    bind ExpectText <F12>		{sendcahrs %W "\x1b\[31~" }
+    bind ExpectText <KP_0>		{sendchars %W "\x1bOp" }
+    bind ExpectText <KP_1>		{sendchars %W "\x1bOq" }
+    bind ExpectText <KP_2>		{sendchars %W "\x1bOr" }
+    bind ExpectText <KP_3>		{sendchars %W "\x1bOs" }
+    bind ExpectText <KP_4>		{sendchars %W "\x1bOt" }
+    bind ExpectText <KP_5>		{sendchars %W "\x1bOu" }
+    bind ExpectText <KP_6>		{sendchars %W "\x1bOv" }
+    bind ExpectText <KP_7>		{sendchars %W "\x1bOw" }
+    bind ExpectText <KP_8>		{sendchars %W "\x1bOx" }
+    bind ExpectText <KP_9>		{sendchars %W "\x1bOy" }
+    bind ExpectText <KP_Decimal>	{sendchars %W "\x1bOn" }
+    bind ExpectText <KP_Insert>		{sendchars %W "\x1b\[1~" }
+    bind ExpectText <KP_Home>		{sendchars %W "\x1b\[2~" }
+    bind ExpectText <KP_Prior>		{sendchars %W "\x1b\[3~" }
+    bind ExpectText <KP_Delete>		{sendchars %W "\x1b\[4~" }
+    bind ExpectText <KP_End>		{sendchars %W "\x1b\[5~" }
+    bind ExpectText <KP_Next>		{sendchars %W "\x1b\[6~" }
+    bind ExpectText <KP_Enter>		{sendchars %W "\x1bOM" }
+    bind ExpectText <F1>		{sendchars %W "\x1b\[17~" }
+    bind ExpectText <F2>		{sendchars %W "\x1b\[18~" }
+    bind ExpectText <F3>		{sendchars %W "\x1b\[19~" }
+    bind ExpectText <F4>		{sendchars %W "\x1b\[20~" }
+    bind ExpectText <F5>		{sendchars %W "\x1b\[21~" }
+    bind ExpectText <F6>		{sendchars %W "\x1b\[23~" }
+    bind ExpectText <F7>		{sendchars %W "\x1b\[24~" }
+    bind ExpectText <F8>		{sendchars %W "\x1b\[25~" }
+    bind ExpectText <F9>		{sendchars %W "\x1b\[26~" }
+    bind ExpectText <F10>		{sendchars %W "\x1b\[28~" }
+    bind ExpectText <F11>		{sendchars %W "\x1b\[29~" }
+    bind ExpectText <F12>		{sendchars %W "\x1b\[31~" }
 }
 
 proc sessionwin { w host } {
