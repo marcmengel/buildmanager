@@ -31,9 +31,9 @@ PREFIX=$(DEFAULT_PREFIX)
       UPS_SUBDIR=ups
           FLAVOR=$(DEFAULT_NULL_FLAVOR)
               OS=$(DEFAULT_OS)
-           QUALS=
+           QUALS=""
             CUST=$(DEFAULT_CUST)
- ADDPRODUCT_HOST=dcdsv0
+ ADDPRODUCT_HOST=fnkits.fnal.gov
 DISTRIBUTIONFILE="$(DEFAULT_DISTRIBFILE)"
 
 #------------------------------------------------------------------
