@@ -1,0 +1,369 @@
+#!/usr/local/products/expect/current/bin/expectk -f
+
+if { [info exists env(BUILDMANAGER_DIR)] } {
+     set dir $env(BUILDMANAGER_DIR)
+} else {
+     set dir .
+}
+source ${dir}/sessionwin_gui.tcl
+source ${dir}/sessionwin_util.tcl
+source ${dir}/menubar_gui.tcl
+source ${dir}/customcmd_gui.tcl
+source ${dir}/passwd_popup.tcl
+source ${dir}/menu_utils.tcl
+
+proc getlogininfo {} {
+     global logname password
+
+     if { "passwd_popup" == [ info command passwd_popup ]} {
+         passwd_popup .pop 
+	 tkwait window .pop
+     } else {
+	 puts -nonewline "login: "
+	 flush stdout
+	 gets stdin logname
+	 exec stty -echo
+	 puts -nonewline "password: "
+	 flush stdout
+	 gets stdin password
+	 exec stty echo
+    }
+}
+
+
+set hwcount 0
+set sessionlist {}
+
+proc updatehostwindows { w1 w2 } {
+    global os_dat sw_dat
+    global hwcount
+
+    set newsessions {}
+
+    foreach flavor $os_dat(LIST) {
+        incr hwcount
+        set bw $w2.b_$hwcount
+	set hw $w1.h_$hwcount
+
+        if { ![info exists os_dat(f2bw,$flavor)] } {
+	    checkbutton $bw -text "$flavor" \
+		    -variable "os_dat(do,$flavor)" \
+		    -command "updatehostwindows $w1 $w2"
+	    pack $bw -side left
+	    set os_dat(f2bw,$flavor) $bw
+	}
+
+	# if we should be doing this flavor, but arent, add a window
+	# for it
+
+	if { $os_dat(do,$flavor) && ![info exists os_dat(f2w,$flavor)]} {
+	    set h $os_dat(HOST,$flavor)
+	    set os_dat(f2w,$flavor) $hw
+	    set os_dat(w2f,$hw) $flavor
+
+	    sessionwin $hw $h
+	    pack $hw -expand 1 -fill both -side bottom
+
+	    set s $sw_dat(w2s,$hw)
+    	    set os_dat(s2f,$s) $flavor
+	    $hw.l4 configure -text "$flavor"
+	    lappend newsessions $s
+	}
+
+	# if we are doing this flavor, but shoudn't be anymore,
+	# drop the session
+
+	if { !$os_dat(do,$flavor) && [info exists os_dat(f2w,$flavor)]} {
+	    drop_session $sw_dat(w2s,$os_dat(f2w,$flavor))
+	}
+    }
+
+    # log in any new sessions
+
+    loginsessions $newsessions
+}
+
+proc login_host { s host {depth  0}} {
+    global logname password expect_out
+
+    set spawn_id $s
+    expect -re {.*:}
+    exp_send "\r"
+    expect ogin:    
+    exp_send "$logname\r"
+    expect word:    
+    exp_send "$password\r"
+    expect -re "\n(.*)\n"
+    if [catch {set resp $expect_out(1,string)}] {
+	set resp "huh"
+    }
+    puts "resp is $resp"
+    if { [ regexp {[Ii]ncorrect|[In]valid|[Uu]nkown|[Uu]nable} $resp ] } {
+	if { $depth < 4 } {
+	    puts "Login failed on host $host, please re-enter login info"
+	    getlogininfo
+	    login_host $s $host [expr $depth + 1 ]
+	} else {
+	    drop_session $s
+	}
+    }
+}
+
+proc login_phase2 { s host } {
+    global promptre logname password expect_out
+
+    # now try to get the right prompt.  We could get asked for a
+    # password again if the users account does a klog or something.
+    puts "expecting many things..."
+    set timeout 60
+    set spawn_id $s
+
+    expect  {
+	"ssword:"	{exp_send -i $s "$password\r";      exp_continue }
+	{Last login}	{exp_continue}
+	timeout		{exp_continue}
+	-re "\\\$ \$"	{}
+	-re "\\% \$"	{}
+	-re $promptre	{}
+    }
+
+    exp_send "exec /bin/sh\r"
+
+    puts "trying for another prompt"
+    expect  {
+	-re "\\\$ \$"	{
+			    exp_send  "PS1='<$host> '\r"
+			    expect    "<$host> '"
+			    exp_continue
+			}
+	timeout		{exp_continue}
+	-re $promptre	{exp_send -i $s "\r"}
+    }
+
+    puts "we think we have a prompt again"
+    expect -re $promptre
+    exp_send "\r"
+
+    exp_send ". /usr/local/etc/setpath.sh; . /usr/local/etc/setups.sh\r"
+
+    # set vars in users environment for operating system,
+    # customization and flavor for convenience.
+}
+
+proc login_phase3 { s host } {
+    global promptre logname password expect_out spawn_id
+    global sw_dat
+    global os_dat
+    global env
+   
+    set spawn_id $s
+    puts "expecting another prompt"
+    expect -re $promptre
+    exp_send  "F='$os_dat(s2f,$s)'\r"
+
+
+    puts "Flavor for session $s is $os_dat(s2f,$s)"
+    if {[info exists os_dat(PATH,$os_dat(s2f,$s))]} {
+        exp_send "PATH=$os_dat(PATH,$os_dat(s2f,$s)):\$PATH; export PATH\r"
+    }
+
+    foreach var $os_dat(ENVVARS) {
+	if { [info exists env($var)] } {
+	    expect -re $promptre
+	    exp_send "$var='$env($var)'; export $var\r"
+	} else {
+	    puts stderr "Warning: environment variable $var not set!"
+	}
+    }
+
+    expect -re $promptre
+    exp_send "setup cvs\r"
+
+    expect -re $promptre
+    exp_send "set -x\r"
+
+    expect -re $promptre
+    exp_send "cd [productroot]\r"
+}
+
+proc loginsessions  { newsessions } {
+    global sessionlist sw_dat
+
+    #
+    # broken into phases to use long delay between entering password
+    # and finishing .profile type stuff to start login of other hosts
+    #
+    foreach phase {host phase2 phase3} {
+	foreach s $newsessions {
+	    setstatus $s Login
+	    login_$phase $s $sw_dat(s2h,$s)
+	}
+    }
+}
+
+proc update_bytes {} {
+    global expect_out sw_dat
+
+    rcvchars $sw_dat(s2w,$expect_out(spawn_id)) $expect_out(buffer)
+}
+
+proc update_status { status} {
+    global expect_out sw_dat pending1 pending2
+
+    update_bytes
+    set s $expect_out(spawn_id)
+    setstatus $s $status
+    if { $status == "Ready" && [info exists pending1($s)] } {
+	catch $pending1($s)
+	unset pending1($s)
+    }
+    if { $status == "Ready" && [info exists pending2($s)] } {
+	catch $pending2($s)
+	unset pending2($s)
+    }
+}
+
+proc drop_session { s } {
+    global sessionlist sw_dat os_dat
+
+    set w $sw_dat(s2w,$s)
+    set flavor $os_dat(w2f,$w)
+    set os_dat(do,$flavor) 0
+    unset os_dat(w2f,$w)
+    unset os_dat(f2w,$flavor)
+    destroy $w
+    set index [lsearch -exact $sessionlist $s]
+    set sessionlist [lreplace $sessionlist $index $index]
+    return [llength $sessionlist]
+}
+
+proc update_state {state} {
+    global expect_out sw_dat statepending
+
+    update_bytes
+    set s $expect_out(spawn_id)
+    setstate $s $state
+    if { [info exists statepending($s,$state)] } {
+	catch $statepending($s,$state)
+	unset $statepending($s,$state)
+    }
+}
+
+proc cmd_parallel { string {list {}} } {
+    global sessionlist 
+
+    if { "$list" == "" } {
+	set list $sessionlist
+    }
+    foreach s $list {
+	exp_send -i $s "$string\r"
+    }
+}
+
+proc cmd_taketurns { string {list {xxxxxxxxxx}} } {
+    global pending1 pending2 sessionlist
+
+    if { "$list" == "" } {
+	return
+    }
+    if { "$list" == "xxxxxxxxxx" } {
+	set list $sessionlist
+    }
+    set s [lindex $list 0]
+    set list [lrange $list 1 end]
+    set pending1($s) [list cmd_taketurns $string $list]
+    exp_send -i $s "$string\r"
+}
+
+proc getconfiginfo {} {
+    global env
+
+    if { ! [info exists env(BUILDMANAGER_DIR)] } {
+	set env(BUILDMANAGER_DIR) ~/.buildmanager
+    }
+
+    set configfiles [list 	$env(BUILDMANAGER_DIR)/lib/system.cfg	\
+    			 	$env(BUILDMANAGER_DIR)/lib/site.cfg	\
+    			 	$env(BUILDMANAGER_DIR)/lib/$env(DOMAIN).cfg \
+				~/.buildmanager/rc ]
+
+    foreach f $configfiles {
+	puts "sourcing $f"
+	if { [file exists $f] } {
+	    uplevel 1 "source $f"
+	}
+    }
+}
+
+# ----------------------------------------------------------------------
+# mainline...
+# ----------------------------------------------------------------------
+
+if { [lindex $argv 0] == "-v" } {
+    set argv [lrange $argv 1 end]
+} else {
+    log_user 0
+}
+
+set product [lindex $argv 0]
+
+set version [lindex $argv 1]
+puts "product $product version $version"
+
+menubar_gui .menubar
+customcmd_gui .cmd
+frame .flavors
+frame .hosts
+pack .menubar .cmd .flavors -side top -expand 1 -fill x
+pack .hosts .cmd -side top -expand 1 -fill both
+
+getconfiginfo
+getlogininfo
+updatehostwindows .hosts .flavors
+
+expect {
+    -i sessionlist -re $makestartre { 
+	set s $expect_out(spawn_id)
+
+	puts "saw makestart string on $s"
+
+	set args "$expect_out(1,string)"
+
+	if { [ regexp {.* ([^- =]+) } $args match first ] } {
+	     # if we have a last argument with no dashes or equals...
+	     set target $first
+	} else {
+	     set target "all"
+	}
+        update_state $target
+	set pending2($s) "update_state \"$target-OK\""
+	exp_continue
+    }
+    -i sessionlist -re $makefailre {
+	set s $expect_out(spawn_id)
+	puts "saw makefail string on $s"
+	set pending2($s) "update_state \"$sw_dat(state,$s)-Failed\""
+	exp_continue
+    }
+    -i sessionlist -re $promptre { 
+	update_status Ready
+	exp_continue
+    }
+    -i sessionlist -re "\[\r\n\]" {
+	update_status Running
+	exp_continue
+    }
+    -i sessionlist -re {.+} { 
+	update_bytes
+	exp_continue
+    }
+    -i sessionlist timeout {
+	flush_sent $sw_dat(s2w,$expect_out(spawn_id))
+	flush_rcvd $sw_dat(s2w,$expect_out(spawn_id))
+	exp_continue
+    }
+    -i sessionlist eof {
+	if [drop_session $expect_out(spawn_id)] exp_continue
+    }
+}
+exit

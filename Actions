@@ -1,0 +1,22 @@
+
+actions
+	set prod/version (does a cd and sets it)
+	setup
+	make:
+		declare	{takes turns!}
+		all
+		test
+		kits
+		local
+
+auto
+	Startup auto chain 
+		make declare -> 
+			setup -> 
+			make all->
+			make test->
+			make kits->
+
+config
+	auto -> kits | local
+
