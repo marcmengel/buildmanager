@@ -45,7 +45,7 @@ $w.b3 select
 
 # ---------------- Button $w.b4 --------------------
 if {![winfo exists $w.b4]} {button $w.b4}
- $w.b4 configure -text "." -command \
+ $w.b4 configure -bitmap "@${dir}/lib/bitmaps/iconify.xbm" -command \
 	"pack forget $w; \
 	 button ${w}_icon -text \[$w.l2 cget -text\] -command \"pack $w -expand 1 -fill both -side top; destroy ${w}_icon\"; \
 	 pack ${w}_icon -expand 1 -fill both -side top"

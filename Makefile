@@ -72,6 +72,7 @@ all: proddir_is_set
 	chmod -R a+r .
 	chmod -R g+w .
 	chmod 775 bin/buildmanager
+	cd bin; rm -f bmgr; ln -s buildmanager bmgr
 
 clean: 					 # clean up unneeded files	#
 

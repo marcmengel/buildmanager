@@ -1,6 +1,8 @@
 #!/usr/bin/env expectk
 
 
+set connect_command /usr/local/bin/rsh
+
 set hwcount 0
 set sessionlist {}
 set loginok 0
@@ -51,7 +53,7 @@ proc updatehostwindows { w } {
 	    set os_dat(w2f,$hw) $flavor
 
 	    sessionwin $hw $host
-	    pack $hw -expand 1 -fill both -side bottom
+	    pack $hw -expand 1 -fill both -side top
 
 	    set s $sw_dat(w2s,$hw)
 	    set os_dat(s2f,$s) $flavor
