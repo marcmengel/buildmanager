@@ -25,7 +25,7 @@ if {![winfo exists $w.l4]} {label $w.l4}
 if {![winfo exists $w.b]} {button $w.b}
  $w.b configure -bitmap "@${dir}/lib/bitmaps/winsize.xbm" -command "\
      set h \[$w.v.t cget -height\] ;\
-     if { \$h > 23 } {set h 4} else {set h 24} ;\
+     if { \$h > 23 } {set h 4} else {set h 25} ;\
      $w.v.t configure -height \$h ;\
      $w.v.t see end ; \
      if { \$h > 23 } {after 500 \"show_in_scrollframe $w\"} \
@@ -47,8 +47,9 @@ $w.b3 select
 if {![winfo exists $w.b4]} {button $w.b4}
  $w.b4 configure -bitmap "@${dir}/lib/bitmaps/iconify.xbm" -command \
 	"pack forget $w; \
-	 button ${w}_icon -text \[$w.l2 cget -text\] -command \"pack $w -expand 1 -fill both -side top; destroy ${w}_icon\"; \
-	 pack ${w}_icon -expand 1 -fill both -side top"
+	 button ${w}_icon -text \[$w.l2 cget -text\] -command \"destroy ${w}_icon; repack_hostwindows\"; \
+	 pack ${w}_icon -expand 1 -fill both -side top; \
+         repack_hostwindows"
 	 
 
 # ---------------- Frame  $w.v ---------------------

@@ -29,6 +29,10 @@ proc html_insert_file { w file {anchor ""} {debug ""} } {
     global html_end_pre_pattern html_debug_flag
     global html_dirnames
 
+    if { [string match "http://*" $file ] } {
+	return;
+    }
+
     $w configure -cursor watch
     update
     set formatting 1

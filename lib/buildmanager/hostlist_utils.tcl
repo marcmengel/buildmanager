@@ -1,6 +1,7 @@
 # force checkin 
 
 proc fill_hosts { w } {
+        $w delete 0.0 end
         do_fill_hosts  wputs $w
 }
 
@@ -53,7 +54,6 @@ proc do_change_hosts { txt } {
             }
 	}
        
-	puts "new hostlist is $txt"
         set host_dat(LIST) {}
         foreach triple $txt {
 	   set h [lindex $triple 0]
@@ -67,6 +67,7 @@ proc do_change_hosts { txt } {
            }
 	}
         updateflavorbuttons .flavors .hosts.f
+        repack_hostwindows
 }
 
 proc edit_hosts {} {

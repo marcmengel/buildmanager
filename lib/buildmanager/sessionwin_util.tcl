@@ -226,3 +226,27 @@ proc setstate { s txt } {
     $w.l3 configure -text $txt
 }
 
+proc repack_hostwindows {} {
+    global sw_dat
+    global sessionlist
+
+    # unpack everybody
+
+    foreach s $sessionlist {
+        set w $sw_dat(s2w,$s)
+        if { [winfo exists ${w}_icon] } {
+	    pack forget ${w}_icon
+        } else {
+	    pack forget ${w}
+        }
+    }
+
+    foreach s $sessionlist {
+        set w $sw_dat(s2w,$s)
+        if { [winfo exists ${w}_icon] } {
+	    pack ${w}_icon -expand 1 -fill both -side top
+        } else {
+	    pack ${w} -expand 1 -fill both -side top
+        }
+    }
+}
