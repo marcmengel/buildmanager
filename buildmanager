@@ -13,6 +13,7 @@ source ${dir}/passwd_popup.tcl
 source ${dir}/menu_util.tcl
 source ${dir}/html_text.tcl
 source ${dir}/cmd_machine.tcl
+source ${dir}/scrollframe.tcl
 
 set loginok 0
 proc getlogininfo { reason } {
@@ -251,7 +252,9 @@ proc loginsessions  { newsessions } {
     foreach phase {host phase2 phase3} {
 	foreach s $newsessions {
 	    setstatus $s Login
-	    login_$phase $s $sw_dat(s2h,$s)
+	    if { [catch {login_$phase $s $sw_dat(s2h,$s)} ] } {
+		drop_session $s;
+	    }
 	}
     }
     set_everything_state . enabled
@@ -432,14 +435,14 @@ proc init {} {
     fill_in_cmd_menu .menubar
     customcmd_gui .cmd
     frame .flavors
-    frame .hosts
+    vscrollframe .hosts
 
     pack .menubar .cmd .flavors -side top -expand 0 -fill x
-    pack .hosts .cmd -side top -expand 1 -fill both
+    pack .hosts -side top -expand 1 -fill both
 
-    updateflavorbuttons .flavors .hosts 
+    updateflavorbuttons .flavors .hosts.f
     getlogininfo "Initial login"
-    updatehostwindows .hosts
+    updatehostwindows .hosts.f
 }
 
 proc expect_loop {} {
