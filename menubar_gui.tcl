@@ -30,8 +30,8 @@ if {![winfo exists $w.b6]} {button $w.b6}
 
 
 
-pack $w.b6 -side right
-pack $w.m4 -side left
-pack $w.m5 -side left
+pack $w.b6 -side right -expand 0
+pack $w.m4 -side left -expand 0
+pack $w.m5 -side left -expand 0
 # ----------------- Bindings ---------------------------
 }

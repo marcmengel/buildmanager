@@ -2,7 +2,7 @@
 <!--Converted with LaTeX2HTML 96.1-h (September 30, 1996) by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds -->
 <HTML>
 <HEAD>
-<TITLE>&nbsp;FB001 A Draft Design for a MultiPlatform Build Manager</TITLE>
+<TITLE>A Draft Design for a MultiPlatform Build Manager</TITLE>
 <META NAME="description" CONTENT="&nbsp;FB001 A Draft Design for a MultiPlatform Build Manager">
 <META NAME="keywords" CONTENT="BuildFrontEnd">
 <META NAME="resource-type" CONTENT="document">
@@ -10,49 +10,40 @@
 <LINK REL=STYLESHEET HREF="BuildFrontEnd.css">
 </HEAD>
 <BODY LANG="EN" >
- <IMG WIDTH=37 HEIGHT=24 ALIGN=BOTTOM ALT="next" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/next_motif.gif"> <IMG WIDTH=26 HEIGHT=24 ALIGN=BOTTOM ALT="up" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/up_motif_gr.gif"> <IMG WIDTH=63 HEIGHT=24 ALIGN=BOTTOM ALT="previous" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/previous_motif.gif">   <BR>
-<BR> <P>
-<P>
-<H1 ALIGN=CENTER>&nbsp;FB001<BR> 
+
+[<a href="buildmanager.html">back</a> to main]
+<H1 ALIGN=CENTER> 
 A Draft Design for a MultiPlatform Build Manager</H1>
 <P ALIGN=CENTER><STRONG>Marc W. Mengel</STRONG></P><P>
 <P ALIGN=CENTER><STRONG>October 17, 1997</STRONG></P><P>
-<P>
 <H3 CLASS=ABSTRACT>Abstract:</H3>
 <P CLASS=ABSTRACT>Previous work on build systems at Fermilab has led to the conclusion
 that a better tool to help manage builds on multiple platforms will
 greatly boost productivity in getting products released on multiple
 platforms.
-<P>
-</P><P>
 <H1><A NAME="SECTION00010000000000000000">Overview</A></H1>
-<P>
 Many users when faced with the task of building software on multiple
 platforms simply use a multiple window display, log onto each system,
 and switch windows, starting builds in each one. The process is somewhat
 error prone however, due to the problem of remembering what has been
 done on each platform, and not all of the screens fitting on the display
 at once. Two products have been used to attempt to address these issues;
-<EM>uas_build <EM>and <EM>happi<EM>. While both have benefits and
+<EM>uas_build </EM>and <EM>happi</EM>. While both have benefits and
 drawbacks, the author believes a tool is possible which has the benefits
 of both and a few features that they both lack.
-<P>
-</EM></EM></EM></EM><H1><A NAME="SECTION00020000000000000000">Benifits of previous implementations</A></H1>
-<P>
-The approach that <EM>happi<EM><A NAME="tex2html1" HREF="#87"><IMG  ALIGN=BOTTOM ALT="gif" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/foot_motif.gif"></A> takes somewhat solves the tracking problem by putting all of the
+<H1><A NAME="SECTION00020000000000000000">Benifits of previous implementations</A></H1>
+The approach that <EM>happi</EM><A NAME="tex2html1" HREF="#87"><IMG  ALIGN=BOTTOM ALT="gif" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/foot_motif.gif"></A> takes somewhat solves the tracking problem by putting all of the
 builds into a state machine, which ensures that we know how far along
-each build has gotten; <EM>happi <EM>also provides a user interface
+each build has gotten; <EM>happi </EM>also provides a user interface
 showing the output from multiple builds proceeding in parallel simultaneously
 on the screen, which is an improvement over multiple X terminals,
-etc. The approach taken by the <EM>uas_build <EM>package was to automatically
+etc. The approach taken by the <EM>uas_build </EM>package was to automatically
 launch make commands in parallel on multiple platforms, and display
 the output in xterm windows, one per host. This allowed flexibility
 to launch arbitrary commands in arbitrary order on the various build
 systems in the process of building the software.
-<P>
-</EM></EM></EM></EM></EM></EM><H1><A NAME="SECTION00030000000000000000">Limitiations of previous implementations</A></H1>
-<P>
-Both of these solutions (<EM>happi <EM>and <EM>uas_build<EM>)are
+<H1><A NAME="SECTION00030000000000000000">Limitiations of previous implementations</A></H1>
+Both of these solutions (<EM>happi </EM>and <EM>uas_build</EM>)are
 somewhat limited, in that the user cannot interact with the sessions
 on the build machines, rather they are confined to pre-defined actions
 in the build system, often forcing a user to have a separate login
@@ -60,13 +51,13 @@ session on the build systems to see what's really going on, which
 generally leads to the user running partial builds that the build
 system is unaware of, and then having to re-do them through the build
 system if the build system is to keep track of the progress. <EM>happi
-<EM>enforces a very coarse-grained state machine, where recovering
+</EM>enforces a very coarse-grained state machine, where recovering
 from any errors in the build process involves starting the whole build
 over from scratch.
 <P>
-A second issue is the complexity of the build system; <EM>happi <EM>is
+A second issue is the complexity of the build system; <EM>happi </EM>is
 a multiple-layered system, with each layer written in a different
-scripting language. <EM>uas_build <EM>uses a makefile-template system
+scripting language. <EM>uas_build </EM>uses a makefile-template system
 which was intended to free the user from having to know the details
 of Makefiles, but which led to more confusion due to synchonization
 issues between the config file and the Makefiles built from it.
@@ -86,14 +77,14 @@ use of node-locked software checking tools, etc), running commands
 on that system can be difficult, or if the user needs access to mixed
 AFS non-AFS systems, using rsh often doesn't get the user authenticated.
 <P>
-</EM></EM></EM></EM></EM></EM></EM></EM></EM></EM><H1><A NAME="SECTION00040000000000000000">Proposed solution</A></H1>
+<H1><A NAME="SECTION00040000000000000000">Proposed solution</A></H1>
 <P>
 I propose we use a simple framework to manage this problem which combines
-the nice user interface of <EM>happi <EM>with even more flexibility
-than <EM>uas_build<EM>. We can use the <EM>expect <EM>package to
+the nice user interface of <EM>happi </EM>with even more flexibility
+than <EM>uas_build</EM>. We can use the <EM>expect </EM>package to
 manage multiple telnet sessions for us. We have existing <EM>expect
-<EM>scripts which handle logging into various sorts of systems, and
-others which interconnect Tk text windows with an <EM>expect <EM>session.
+</EM>scripts which handle logging into various sorts of systems, and
+others which interconnect Tk text windows with an <EM>expect </EM>session.
 This makes it possible to build a simple screen interface which logs
 onto multiple systems, and presents each system's login session with
 a text window, where typing in that window works like a regular terminal
@@ -121,7 +112,7 @@ Platform specific initialization can be included in the login portion
 of the package, simply by checking the platform type when we log in
 and performing the appropriate actions.
 <P>
-</EM></EM></EM></EM></EM></EM></EM></EM></EM></EM><H1><A NAME="SECTION00050000000000000000">Milestones</A></H1>
+<H1><A NAME="SECTION00050000000000000000">Milestones</A></H1>
 <P>
 I propose the project be built in several stages, each of which will
 be useful in itself, with each stage building on the previous ones.
@@ -136,19 +127,19 @@ It is estimated that this will be 10..20 hours of effort.
 <H2><A NAME="SECTION00052000000000000000">Platform-specifics</A></H2>
 <P>
 A second version would add platform specific initialization (which
-would combine information already recorded in <EM>uas_build <EM>and
-<EM>happi <EM>about command search paths, etc.) to the system, and
+would combine information already recorded in <EM>uas_build </EM>and
+<EM>happi </EM>about command search paths, etc.) to the system, and
 flavor replacement in the command execution. That means you could
 tell the tool to issue a command like:
 <P>
-<TT>setup -f %F product vx_y<BR><BR>
+<TT>setup -f %F product vx_y</TT><BR><BR>
 <P>
 and the appropriate flavor string would be automatically substituted
 on each platform. This allows testing of command sequences that will
 be made into canned actions in the next phase. This should be 5..10
 hours of work.
 <P>
-</EM></EM></EM></EM></TT><H2><A NAME="SECTION00053000000000000000">Standard Actions</A></H2>
+<H2><A NAME="SECTION00053000000000000000">Standard Actions</A></H2>
 <P>
 Next, various standard actions could be added as buttons or pull-down
 menus, etc. that would put the standard make targets in our makefiles
@@ -234,12 +225,14 @@ their builds use a file tree under their home directory rather than
 one in a system-wide location). As the product matures, these pieces
 of data should be configurable from within the system.
 <P>
+[<a href="buildmanager.html">back</a> to main]
+<P>
 <H1><A NAME="SECTION00080000000000000000">  About this document ... </A></H1>
 <P>
  <STRONG>&nbsp;FB001<BR> 
 A Draft Design for a MultiPlatform Build Manager</STRONG><P>
 This document was generated using the <A HREF="http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/"><STRONG>LaTeX</STRONG>2<tt>HTML</tt></A> translator Version 96.1-h (September 30, 1996) Copyright &#169; 1993, 1994, 1995, 1996,  <A HREF="http://cbl.leeds.ac.uk/nikos/personal.html">Nikos Drakos</A>, Computer Based Learning Unit, University of Leeds. <P> The command line arguments were: <BR>
-<STRONG>latex2html</STRONG> <tt>BuildFrontEnd.tex</tt>. <P>The translation was initiated by Marc Mengel on Wed Dec  3 12:05:20 CST 1997<DL> <DT><A NAME="87">...<EM>happi<EM></A><DD>
+<STRONG>latex2html</STRONG> <tt>BuildFrontEnd.tex</tt>. <P>The translation was initiated by Marc Mengel on Wed Dec  3 12:05:20 CST 1997<DL> <DT><A NAME="87">...<EM>happi</EM></A><DD>
 See the <I>ASIS Product Providers Guide
 </I>
 <PRE>
@@ -249,5 +242,6 @@ See the <I>ASIS Product Providers Guide
 <I>Marc Mengel <BR>
 Wed Dec  3 12:05:20 CST 1997</I>
 </ADDRESS>
+[<a href="buildmanager.html">back</a> to main]
 </BODY>
 </HTML>

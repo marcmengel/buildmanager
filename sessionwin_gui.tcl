@@ -1,4 +1,5 @@
 proc sessionwin_gui { w } {
+global dir
 
 # ---------------- Frame  $w ---------------------
 if {![winfo exists $w]} {frame $w}
@@ -20,6 +21,15 @@ if {![winfo exists $w.l3]} {label $w.l3}
 if {![winfo exists $w.l4]} {label $w.l4}
  $w.l4 configure -relief "sunken" -text "flavor" -width 18
 
+# ---------------- Button $w.b --------------------
+if {![winfo exists $w.b]} {button $w.b}
+ $w.b configure -bitmap "@${dir}/winsize.xbm" -command "\
+     set h \[$w.v.t cget -height\] ;\
+     if { \$h < 24 } {set h 24} else {set h 8} ;\
+     $w.v.t configure -height \$h ;\
+     $w.v.t see end \
+ "
+
 # ---------------- Frame  $w.v ---------------------
 if {![winfo exists $w.v]} {frame $w.v}
  $w.v configure -borderwidth "4" -relief "ridge"
@@ -31,7 +41,7 @@ if {![winfo exists $w.v.sb]} {scrollbar $w.v.sb}
 
 # ---------------- Text  $w.v.t ---------------------
 if {![winfo exists $w.v.t]} {text $w.v.t}
- $w.v.t configure -height 10 -width "80" -yscrollcommand "$w.v.sb set"
+ $w.v.t configure -height 8 -width "80" -yscrollcommand "$w.v.sb set"
 catch "$w.v.t tag add sel"
  $w.v.t tag configure sel -background "#c3c3c3" -borderwidth "1" -foreground "Black" -relief "raised"
 
@@ -44,5 +54,6 @@ pack configure $w.l1 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 
 pack configure $w.l2 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 pack configure $w.l3 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 pack configure $w.l4 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
+pack configure $w.b -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 # ----------------- Bindings ---------------------------
 }

@@ -232,7 +232,7 @@ proc html_do_p { w slash arg } {
     }
 
     $w insert insert "\n" 
-    html_tag "html_p" $w $slash
+    # html_tag "html_p" $w $slash
     set html_paragraph_flag [expr {"$slash" != "/"} ]
 }
 
@@ -273,6 +273,9 @@ proc html_do_em { w slash arg } {
 
 proc html_do_h { w slash arg } {
     global html_paragraph_flag
+
+    # throw away rest of arg after blank
+    regsub { .*} $arg {} arg	
 
     # end un-ended paragraphs before starting headers...
     if {"" == "$slash" && $html_paragraph_flag } {

@@ -123,7 +123,7 @@ proc login_host { s host {depth  0}} {
     if [catch {set resp $expect_out(1,string)}] {
 	set resp "huh"
     }
-    puts "resp is $resp"
+    # puts "resp is $resp"
     if { [ regexp {[Ii]ncorrect|[In]valid|[Uu]nkown|[Uu]nable} $resp ] } {
 	if { $depth < 4 } {
 	    getlogininfo "Login failed on host $host, please re-enter login info"
@@ -424,6 +424,7 @@ proc init {} {
     customcmd_gui .cmd
     frame .flavors
     frame .hosts
+
     pack .menubar .cmd .flavors -side top -expand 0 -fill x
     pack .hosts .cmd -side top -expand 1 -fill both
 
@@ -441,7 +442,7 @@ proc expect_loop {} {
 	-i sessionlist -re $makestartre { 
 	    set s $expect_out(spawn_id)
 
-	    puts "saw makestart string on $s"
+	    # puts "saw makestart string on $s"
 
 	    set args "$expect_out(1,string)"
 
@@ -457,7 +458,7 @@ proc expect_loop {} {
 	}
 	-i sessionlist -re $makefailre {
 	    set s $expect_out(spawn_id)
-	    puts "saw makefail string on $s"
+	    # puts "saw makefail string on $s"
 	    set pending2($s) "update_state \"$sw_dat(state,$s)-Failed\""
 	    update_bytes
 	    exp_continue
@@ -495,6 +496,8 @@ proc error_dialog {routine message} {
 }
 
 proc main {} {
+    # make backspace and delete identical in entry widgets
+    bind Entry <Delete> [bind Entry <BackSpace>]
     init 
     while [ catch expect_loop result] {
 	error_dialog event_loop $result 
