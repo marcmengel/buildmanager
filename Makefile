@@ -20,16 +20,16 @@ PREFIX=$(DEFAULT_PREFIX)
 # Qualifiers, and customization information, which is also used for 
 # "cmd addproduct", and finally the distribution file name.
 # this section may change in later ups|addproduct incarnations
-      UPS_STYLE=old
+      UPS_STYLE=new
             PROD=buildmanager
      PRODUCT_DIR=BUILDMANAGER_DIR
-            VERS=v1_1
+            VERS=v1_2
           DEPEND=-u "< expect v5_21 $(FLAVOR)"
   TABLE_FILE_DIR=ups
       TABLE_FILE=action.table
            CHAIN=development
       UPS_SUBDIR=ups
-          FLAVOR=$(OS)$(CUST)$(QUALS)
+          FLAVOR=$(DEFAULT_NULL_FLAVOR)
               OS=$(DEFAULT_OS)
            QUALS=
             CUST=$(DEFAULT_CUST)
