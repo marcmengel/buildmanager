@@ -50,7 +50,17 @@ proc vt100scroll { t } {
 }
 
 proc vt100cr { t } { $t mark set vt100cursor "vt100cursor linestart" }
-proc vt100bs { t } { $t mark set vt100cursor "vt100cursor -1 chars" }
+
+proc vt100bs { t } { 
+    set i [$t index vt100cursor]
+
+    if { int($i) == $i } {
+	# sometimes we're at the zeroth char of the next line???
+	$t mark set vt100cursor "vt100cursor -1 chars" 
+    }
+    $t mark set vt100cursor "vt100cursor -1 chars" 
+}
+
 proc vt100bel { t } {
     catch {
 	$t configure -background red
@@ -165,7 +175,9 @@ proc vt100recv { t string } {
     
     while { [regexp $plainpat $string full before char] } {
 
-	vt100string $t $before
+        if { "$before" != "" } {
+	    vt100string $t $before
+        }
 
 	regsub $plainpat $string {} string
 
