@@ -67,19 +67,19 @@ proc cmd_taketurns { string {list {xxxxxxxxxx}} } {
         # puts "history is $history"
     }
     if { "$list" ==  {xxxxxxxxxx}} {
-	set list $sessionlist
+	set list {}
+        foreach s $sessionlist {
+           if { [info exists out_of_the_loop($s)] && $out_of_the_loop($s) } {
+		# nothing
+           } else {
+		lappend list $s
+           }
+        }
     }
     if { "$list" == "" } {
 	return
     }
     set s [lindex $list 0]
-    while { [info exists out_of_the_loop($s)] && $out_of_the_loop($s) } {
-	set list [lrange $list 1 end]
-        set s [lindex $list 0]
-        if { "$list" == "" } {
- 	    return
-        }
-    }
     set list [lrange $list 1 end]
     set pending1($s) [list cmd_taketurns $string $list]
     set result [cmd_substitute $string $s]
