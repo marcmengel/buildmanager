@@ -125,7 +125,7 @@ proc init {} {
     frame .flavors
     vscrollframe .hosts
 
-    pack .menubar .cmd .flavors -side top -expand 1 -fill x
+    pack .menubar .cmd .flavors -side top -expand 0 -fill x
     pack .hosts -side top -expand 1 -fill both
 
     updateflavorbuttons .flavors .hosts.f
@@ -135,90 +135,95 @@ proc init {} {
     update
 }
 
+
 proc expect_loop {} {
     global argv env spawn_id history histslot expect_out pending2
     global os_dat sw_dat
     global promptre cmdstartre cmdfailre cmdnevermindre questionre
+    global allwatchre
     global sessionlist
     global debug_state
 
+    set outputlines 0
     expect {
-	-i sessionlist -re $cmdstartre { 
-	    set s $expect_out(spawn_id)
+	-i sessionlist -re "\[^\r\]+" {
+	    if { [regexp $allwatchre $expect_out(0,string)] } {
 
-	    if $debug_state {
-	        puts "saw command start string:"
-		puts "$expect_out(0,string)"
-	    }
+	    # puts "match allwatchere: $expect_out(0,string)"
 
-	    set cmd  $expect_out(1,string)
-	    set args $expect_out(2,string)
+	    if { [regexp $cmdstartre $expect_out(0,string) match cmd args] } {
+		set s $expect_out(spawn_id)
 
-	    if { [ regexp { ([^- =]+) } $args match first ] || 
-			[ regexp { ([^- =]+)$} $args match first ] } {
-		 # if we have an argument with no dashes or equals...
-		 set target $first
-	    } else {
-		 set target "all"
-	    }
-	    if { ![info exists pending2($s)] || ![regexp -- {-make-} $pending2($s)]} {
-	        update_state "$cmd-$target"
-	        set pending2($s) "update_state \"$cmd-$target-OK\""
-	    } else {
-		update_bytes
-	    }
-	    exp_continue
-	}
-	-i sessionlist -re $cmdfailre {
-	    set s $expect_out(spawn_id)
-	    if { [info exists pending2($s)] } {
 		if $debug_state {
-		    puts "I think $pending2($s) failed because I saw:"
+		    puts "saw command start string:"
 		    puts "$expect_out(0,string)"
 		}
-	        regsub -- {-OK} $pending2($s) {-Failed} pending2($s)
-	    }
-	    update_bytes
-	    exp_continue
-	}
-	-i sessionlist -re $cmdnevermindre {
-	    set s $expect_out(spawn_id)
-	    if { [info exists pending2($s)] } {
-		if $debug_state {
-		    puts "I think $pending2($s) succeeded after all because I saw:"
-		    puts "$expect_out(0,string)"
-		}
-	        regsub -- {-Failed} $pending2($s) {-OK} pending2($s)
-	    }
-	    update_bytes
-	    exp_continue
-	}
-	-i sessionlist -re $questionre {
-	    set s $expect_out(spawn_id)
-	    if { [info exists pending2($s)] } {
-		set state $sw_dat(state,$s)
-		setstatus $s Question
-		if [regexp {(.*-Question-)([0-9]+)$} $state match pre num] {
-		    update_state "${pre}[expr $num + 1]"
+
+		#set cmd  $expect_out(1,string)
+		#set args $expect_out(2,string)
+
+		if { [ regexp { ([^- =]+) } $args match first ] || 
+			    [ regexp { ([^- =]+)$} $args match first ] } {
+		     # if we have an argument with no dashes or equals...
+		     set target $first
 		} else {
-		    update_state "${state}-Question-1"
+		     set target "all"
 		}
-	    } else {
-	        update_status Question
-	    }
-	    exp_continue
-	}
-	-i sessionlist -re $promptre {
-	    set s $expect_out(spawn_id)
-	    update_status Ready
-	    exp_continue
-	}
+		if { ![info exists pending2($s)] || ![regexp -- {-make-} $pending2($s)]} {
+		    update_state "$cmd-$target"
+		    set pending2($s) "update_state \"$cmd-$target-OK\""
+		} else {
+		    update_bytes
+		}
+		exp_continue
+	    } elseif { [regexp $cmdfailre $expect_out(0,string)] } {
+	    # -i sessionlist -re $cmdfailre {}
+		set s $expect_out(spawn_id)
+		if { [info exists pending2($s)] } {
+		    if $debug_state {
+			puts "I think $pending2($s) failed because I saw:"
+			puts "$expect_out(0,string)"
+		    }
+	            if {[regexp $cmdnevermindre $expect_out(0,string)] } {
+		      regsub -- {-Failed} $pending2($s) {-OK} pending2($s)
+		    } else {
+		      regsub -- {-OK} $pending2($s) {-Failed} pending2($s)
+		    }
+		}
+		update_bytes
+		exp_continue
+	    } else { 
+		update_bytes
+		exp_continue
+            }
+          } elseif { [regexp $questionre $expect_out(0,string)] } {
+		set s $expect_out(spawn_id)
+		if { [info exists pending2($s)] } {
+		    set state $sw_dat(state,$s)
+		    setstatus $s Question
+		    if [regexp {(.*-Question-)([0-9]+)$} $state match pre num] {
+			update_state "${pre}[expr $num + 1]"
+		    } else {
+			update_state "${state}-Question-1"
+		    }
+		} else {
+		    update_status Question
+		}
+	        exp_continue
+	  } elseif { [regexp $promptre $expect_out(0,string)] } {
+		set s $expect_out(spawn_id)
+		update_status Ready
+		set outputlines 0
+		exp_continue
+	  } else {
+	        update_bytes
+	        exp_continue
+   	  }
+        }
 	-i sessionlist -re "\[\r\n\]+" {
 	    update_status Running
-	    exp_continue
-	}
-	-i sessionlist -re "\[^\r\n\]+" { 
-	    update_bytes
+            incr outputlines 
+	    if { $outputlines % 16 == 0 } { update }
 	    exp_continue
 	}
 	-i sessionlist timeout {
@@ -242,6 +247,9 @@ proc main {} {
     } else {
 	 set dir .
     }
+
+    match_max -d 160
+
     source ${dir}/lib/buildmanager/passwd_popup.tcl
     
     lappend auto_path ${dir}/lib/buildmanager
