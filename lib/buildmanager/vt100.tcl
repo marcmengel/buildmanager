@@ -43,9 +43,9 @@ proc vt100scroll { t } {
     global vt100line
 
     $t insert end "\n"
+    $t mark set vt100cursor end
     $t mark set vt100origin "end -24 lines linestart"
     # puts "vt100scroll vt100origin: [$t index vt100origin] end: [$t index end]"
-    $t see vt100origin
     $t see end
 }
 
