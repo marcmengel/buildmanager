@@ -89,7 +89,7 @@ proc drop_session { s } {
 # ----------------------------------------------------------------------
 
 proc init {} {
-    global argv env spawn_id history histslot expect_out pending pending2
+    global argv env spawn_id history histslot expect_out pending2
     global os_dat sw_dat
     global promptre product version 
     global debug_state
@@ -136,7 +136,7 @@ proc init {} {
 }
 
 proc expect_loop {} {
-    global argv env spawn_id history histslot expect_out pending pending2
+    global argv env spawn_id history histslot expect_out pending2
     global os_dat sw_dat
     global promptre cmdstartre cmdfailre cmdnevermindre questionre
     global sessionlist
@@ -154,7 +154,8 @@ proc expect_loop {} {
 	    set cmd  $expect_out(1,string)
 	    set args $expect_out(2,string)
 
-	    if { [ regexp { ([^- =]+) } $args match first ] } {
+	    if { [ regexp { ([^- =]+) } $args match first ] || 
+			[ regexp { ([^- =]+)$} $args match first ] } {
 		 # if we have an argument with no dashes or equals...
 		 set target $first
 	    } else {
@@ -162,7 +163,7 @@ proc expect_loop {} {
 	    }
 	    if { ![info exists pending2($s)] || ![regexp -- {-make-} $pending2($s)]} {
 	        update_state "$cmd-$target"
-	        set pending2($s) "setstate \"$cmd-$target-OK\""
+	        set pending2($s) "update_state \"$cmd-$target-OK\""
 	    } else {
 		update_bytes
 	    }
@@ -208,6 +209,7 @@ proc expect_loop {} {
 	    exp_continue
 	}
 	-i sessionlist -re $promptre {
+	    set s $expect_out(spawn_id)
 	    update_status Ready
 	    exp_continue
 	}

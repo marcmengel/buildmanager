@@ -29,6 +29,8 @@ proc html_insert_file { w file {anchor ""} {debug ""} } {
     global html_end_pre_pattern html_debug_flag
     global html_dirnames
 
+    $w configure -cursor watch
+    update
     set formatting 1
     if { "$debug" != "" } {
         set html_debug_flag $debug
@@ -37,6 +39,7 @@ proc html_insert_file { w file {anchor ""} {debug ""} } {
     html_clean_images $w
     $w delete 0.0 end
     bind $w <Destroy> {html_clean_images %W}
+    update
 
     if {![info exists html_dirnames($w)]} {
 	set html_dirnames($w) "" 
@@ -46,10 +49,14 @@ proc html_insert_file { w file {anchor ""} {debug ""} } {
     set file [file tail $file]
 
     html_paint_tags $w
-    $w configure -cursor watch
 
     set fd [open [file_join $html_dirnames($w) $file] "r" ]
+    set count 0
     while { -1 < [ gets $fd line ] } {
+	incr count
+	if {($count % 32) == 0} {
+	    update
+	}
 	html_debug "new line >|$line|<"
   	 while { "$line" != "" } {
 	     html_debug "formatting"
@@ -97,9 +104,10 @@ proc html_insert_file { w file {anchor ""} {debug ""} } {
 	     $w insert insert "\n"
 	 }
      }
-     $w configure -cursor {}
      close $fd
      catch "$w see html_a_$anchor"
+     update
+     $w configure -cursor {}
 }
 
 #

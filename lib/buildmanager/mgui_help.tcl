@@ -1,5 +1,6 @@
 
 . configure -cursor watch
+update
 # ---------------- Toplevel .help ---------------------
 if {![winfo exists .help]} {toplevel .help}
 wm geometry .help 600x400+200+0
@@ -62,4 +63,5 @@ bind .help.h3 <Destroy> {
     global donethat
     set donethat 0
 }
+update
 . configure -cursor {}
