@@ -28,7 +28,7 @@ DIR=`pwd | sed	-e 's|^/tmp_mnt||' \
 # this section may change in later ups|addproduct incarnations
             PROD=buildmanager
      PRODUCT_DIR=BUILDMANAGER_DIR
-            VERS=b1_0
+            VERS=v1_0
           DEPEND=-u "< expect v5_21 $FLAVOR"
            CHAIN=development
       UPS_SUBDIR=ups
@@ -68,7 +68,7 @@ PREFIX=/usr/local/products/buildmanager/$(VERS)
 # Files that have the version string in them
 # this is used by "make setversion" to know what files need
 # the version string replaced
-VERSIONFILES=Makefile README $(UPS_SUBDIR)/INSTALL_NOTE $(UPS_SUBDIR)/Version
+VERSIONFILES=Makefile README 
 
 #------------------------------------------------------------------
 # this is an *example* of a mythical product with a GNU Configure
