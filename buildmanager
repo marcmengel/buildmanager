@@ -112,7 +112,7 @@ proc login_host { s host {depth  0}} {
     set spawn_id $s
     expect -re {.*:} 
     update_bytes
-    exp_send "\r"
+    # exp_send "\r"
     expect ogin:    
     update_bytes
     exp_send "$logname\r"
