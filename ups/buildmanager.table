@@ -1,0 +1,16 @@
+FILE=TABLE
+PRODUCT=buildmanager
+
+Group:
+  Flavor=NULL
+  Qualifiers=""
+
+Common:
+  Action=Setup
+    setupRequired("expect v5_25")
+    setupEnv()
+    proddir()
+    envPrepend(PATH, ${UPS_PROD_DIR}/bin)
+
+END:
+
