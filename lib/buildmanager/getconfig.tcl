@@ -2,16 +2,16 @@
 proc getconfiginfo {} {
     global env
 
-    if { ! [info exists env(BUILDMANAGER_DIR)] } {
-	set env(BUILDMANAGER_DIR) ~/.buildmanager
+    if { ! [info exists env(BUILDCONFIG_DIR)] } {
+	set env(BUILDCONFIG_DIR) ~/.buildmanager
     }
     set fd [open "|domainname" "r" ]
     gets $fd domain
     close $fd
 
-    set configfiles [list 	$env(BUILDMANAGER_DIR)/lib/system.cfg	\
-    			 	$env(BUILDMANAGER_DIR)/lib/site.cfg	\
-    			 	$env(BUILDMANAGER_DIR)/lib/$domain.cfg \
+    set configfiles [list 	$env(BUILDCONFIG_DIR)/lib/system.cfg	\
+    			 	$env(BUILDCONFIG_DIR)/lib/site.cfg	\
+    			 	$env(BUILDCONFIG_DIR)/lib/$domain.cfg \
 				~/.buildmanagerrc ]
 
     foreach f $configfiles {
