@@ -81,12 +81,20 @@ proc html_insert_file { w file {anchor ""} {debug ""} } {
 	     } elseif { [regexp -nocase $html_end_pre_pattern $line match upto] } {
 		 html_debug "matched a </pre> at [$w index insert]"
 		 regsub -nocase $html_end_pre_pattern $line {} line
+                 regsub -nocase {\&lt;} $upto {<} upto
+                 regsub -nocase {\&gt;} $upto {>} upto
+                 regsub -nocase {\&amp;} $upto {\&} upto
+                 regsub -nocase {\&nbsp;} $upto { } upto
 		 $w insert insert "$upto" {}
 		 html_do_pre $w "/" ""
 		 set formatting 1
 	     } elseif { [regexp -nocase $html_word_pattern $line match word ]} {
 		html_debug "matched a word >|$word|< at [$w index insert]"
 		regsub -nocase $html_word_pattern $line {} line
+                regsub -nocase {\&lt;} $word {<} word
+                regsub -nocase {\&gt;} $word {>} word
+                regsub -nocase {\&amp;} $word {\&} word
+                regsub -nocase {\&nbsp;} $word { } word
 	        $w insert insert $word {}
 		if { $formatting } {
 		    $w insert insert " " {}
