@@ -162,10 +162,10 @@ old_declare: dproducts_is_set $(UPS_SUBDIR)/Version
 	@$(OLD_UPS_LIST)
 
 old_undeclare: dproducts_is_set $(UPS_SUBDIR)/Version 
-	$(OLD_UPS_UNDECLARE)
+	@$(OLD_UPS_UNDECLARE)
 
 old_delproduct:
-	$(OLD_DELPRODUCT)
+	@$(OLD_DELPRODUCT)
 
 #====================== NEW UPS COMMANDS =====================
 # addproduct -- add the distribution file to a distribution platform, 
@@ -192,7 +192,7 @@ new_declare: dproducts_is_set $(UPS_SUBDIR)/Version
 	@$(NEW_UPS_LIST)
 
 new_undeclare: dproducts_is_set $(UPS_SUBDIR)/Version 
-	$(NEW_UPS_UNDECLARE)
+	@$(NEW_UPS_UNDECLARE)
 
 new_delproduct:
 	$(NEW_DELPRODUCT)
@@ -374,59 +374,94 @@ QUALSEP=`case $(UPS_STYLE)$(QUALS) in \
 # These are all basic ups commands with loads of options.
 
 OLD_UPS_EXIST= \
+        PRODUCTS="$(DPRODUCTS)"; export PRODUCTS; \
+	echo $(UPS_DIR)/bin/ups_exist \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS);\
 	$(UPS_DIR)/bin/ups_exist \
-		-z $$DPRODUCTS \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
 NEW_UPS_EXIST=\
+	echo $(UPS_DIR)/bin/ups exist \
+		-z $(DPRODUCTS) \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS);\
 	$(UPS_DIR)/bin/ups exist \
-		-z $$DPRODUCTS \
+		-z $(DPRODUCTS) \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
 OLD_UPS_UNDECLARE= \
+        PRODUCTS="$(DPRODUCTS)"; export PRODUCTS; \
+	echo $(UPS_DIR)/bin/ups_undeclare \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS);\
 	$(UPS_DIR)/bin/ups_undeclare \
-		-z $$DPRODUCTS \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
 NEW_UPS_UNDECLARE=\
+	echo $(UPS_DIR)/bin/ups undeclare \
+		-z $(DPRODUCTS) \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS);\
 	$(UPS_DIR)/bin/ups undeclare \
-		-z $$DPRODUCTS \
+		-z $(DPRODUCTS) \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
 OLD_UPS_DECLARE= \
+        PRODUCTS="$(DPRODUCTS)"; export PRODUCTS; \
+	echo $(UPS_DIR)/bin/ups_declare \
+		$(DEPEND) \
+		-U $(DIR)/$(UPS_SUBDIR) \
+		-r $(DIR) \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS); \
 	$(UPS_DIR)/bin/ups_declare \
 		$(DEPEND) \
-		-z $$DPRODUCTS \
 		-U $(DIR)/$(UPS_SUBDIR) \
 		-r $(DIR) \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
 NEW_UPS_DECLARE= \
+	echo $(UPS_DIR)/bin/ups declare \
+		-M $(TABLE_FILE_DIR) \
+		-m $(TABLE_FILE) \
+		-z $(DPRODUCTS) \
+		-U $(UPS_SUBDIR) \
+		-r $(DIR) \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS);\
 	$(UPS_DIR)/bin/ups declare \
 		-M $(TABLE_FILE_DIR) \
 		-m $(TABLE_FILE) \
-		-z $$DPRODUCTS \
+		-z $(DPRODUCTS) \
 		-U $(UPS_SUBDIR) \
 		-r $(DIR) \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
 OLD_UPS_LIST= \
+        PRODUCTS="$(DPRODUCTS)"; export PRODUCTS; \
+	echo $(UPS_DIR)/bin/ups_list \
+		-l \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS); \
 	$(UPS_DIR)/bin/ups_list \
-		-z $$DPRODUCTS \
 		-l \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 
 NEW_UPS_LIST = \
-	$(UPS_DIR)/bin/ups_list \
-		-z $$DPRODUCTS \
-		-l \
+	echo $(UPS_DIR)/bin/ups list \
+		-z $(DPRODUCTS) \
+		-f $(FLAVOR) \
+		$(PROD) $(VERS);\
+	$(UPS_DIR)/bin/ups list \
+		-z $(DPRODUCTS) \
 		-f $(FLAVOR) \
 		$(PROD) $(VERS)
 

@@ -1,4 +1,4 @@
-#!/usr/local/products/expect/current/bin/expectk -f
+#!/bin/env expectk
 
 if { [info exists env(BUILDMANAGER_DIR)] } {
      set dir $env(BUILDMANAGER_DIR)
