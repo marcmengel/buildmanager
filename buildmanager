@@ -12,6 +12,7 @@ source ${dir}/customcmd_gui.tcl
 source ${dir}/passwd_popup.tcl
 source ${dir}/menu_util.tcl
 source ${dir}/html_text.tcl
+source ${dir}/cmd_machine.tcl
 
 set loginok 0
 proc getlogininfo { reason } {
@@ -280,18 +281,6 @@ proc drop_session { s } {
     return [llength $sessionlist]
 }
 
-proc update_state {state} {
-    global expect_out sw_dat statepending
-
-    update_bytes
-    set s $expect_out(spawn_id)
-    setstate $s $state
-    if { [info exists statepending($s,$state)] } {
-	catch $statepending($s,$state)
-	unset $statepending($s,$state)
-    }
-}
-
 proc cmd_substitute {string s} {
     global product version releasetarget
     global os_dat sw_dat
@@ -436,34 +425,44 @@ proc init {} {
 proc expect_loop {} {
     global argv env spawn_id history histslot expect_out pending pending2
     global os_dat sw_dat
-    global promptre makestartre makefailre sessionlist
+    global promptre cmdstartre cmdfailre cmdnevermindre sessionlist
 
     expect {
-	-i sessionlist -re $makestartre { 
+	-i sessionlist -re $cmdstartre { 
 	    set s $expect_out(spawn_id)
 
 	    # puts "saw makestart string on $s"
 
-	    set args "$expect_out(1,string)"
+	    set cmd  $expect_out(1,string)
+	    set args $expect_out(2,string)
 
-	    if { [ regexp {.* ([^- =]+) } $args match first ] } {
-		 # if we have a last argument with no dashes or equals...
+	    if { [ regexp { ([^- =]+) } $args match first ] } {
+		 # if we have an argument with no dashes or equals...
 		 set target $first
 	    } else {
 		 set target "all"
 	    }
-	    update_state $target
-	    set pending2($s) "update_state \"$target-OK\""
+	    if { ![info exists pending2($s)] || ![regexp -- {-make-} $pending2($s)]} {
+	        update_state "$cmd-$target"
+	        set pending2($s) "update_state \"$cmd-$target-OK\""
+	    } else {
+		update_bytes
+	    }
 	    exp_continue
 	}
-	-i sessionlist -re $makefailre {
+	-i sessionlist -re $cmdfailre {
 	    set s $expect_out(spawn_id)
-	    # puts "saw makefail string on $s"
-	    set pending2($s) "update_state \"$sw_dat(state,$s)-Failed\""
+	    regsub -- {-OK} $pending2($s) {-Failed} pending2($s)
 	    update_bytes
 	    exp_continue
 	}
-	-i sessionlist -re $promptre { 
+	-i sessionlist -re $cmdnevermindre {
+	    set s $expect_out(spawn_id)
+	    regsub -- {-Failed} $pending2($s) {-OK} pending2($s)
+	    update_bytes
+	    exp_continue
+	}
+	-i sessionlist -re $promptre {
 	    update_status Ready
 	    exp_continue
 	}
@@ -489,9 +488,10 @@ proc expect_loop {} {
 proc error_dialog {routine message} {
     global errorInfo
 
+    set errortolist $errorInfo
     set res [tk_dialog .error "Error!" "Error in $routine: $message" {} 0 "Ok" "Info"]
     if {$res == 1} {
-	puts $errorInfo
+	puts $errortolist
     }
 }
 
