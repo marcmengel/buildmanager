@@ -225,4 +225,3 @@ proc setstate { s txt } {
     $w.l3 configure -text $txt
 }
 
-puts "here!"
