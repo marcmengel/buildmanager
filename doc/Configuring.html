@@ -1,171 +1,301 @@
-<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
-<HTML>
-<HEAD>
-   <META HTTP-EQUIV="Content-Type" CONTENT="text/html; charset=iso-8859-1">
-   <META NAME="GENERATOR" CONTENT="Mozilla/4.06 [en] (X11; I; Linux 2.0.35 i686) [Netscape]">
-   <META NAME="Author" CONTENT="Marc W. Mengel">
-   <TITLE>Configuring buildmanager</TITLE>
-</HEAD>
-<BODY>
-<A HREF="buildmanager.html">Back</A> to documentaton
-overview
-<H1>
-Configuring buildmanager</H1>
+<?xml version="1.0"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+    "http://www.w3.org/TR/WD-html-in-xml/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/Profiles/xhtml1-strict">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; 
+    charset=iso-8859-1" />
+    <meta name="GENERATOR" content="Mozilla/4.06 [en] (X11; I; 
+    Linux 2.0.35 i686) [Netscape]" />
+    <meta name="Author" content="Marc W. Mengel" />
+    <title>
+      Configuring buildmanager
+    </title>
+  </head>
+  <body>
+    <a href="buildmanager.html">
+      Back
+    </a>
+    to documentaton overview 
+    <h1>
+      Configuring buildmanager
+    </h1>
+    <h2>
+      Config files read by buildmanager
+    </h2>
+    There are several configuration files for buildmanager that
+    users or system managers may want to configure, and the
+    configuration can be done in one of three places to affect any
+    indivdual user: 
+    <ul>
+      <li>
+        The system-wide ${BUILDCONFIG_DIR}/lib/system.cfg
+      </li>
+      <li>
+        The cluster-wide ${BUILDCONFIG_DIR}/lib/
+        <i>
+          domainname
+        </i>
+        .cfg
+      </li>
+      <li>
+        The users ${HOME}/.buildmanagerrc
+      </li>
+    </ul>
+    These files are searched for in this order, and are sourced
+    into the buildmanager program, which is an 
+    <a href="http://www.fnal.gov/docs/products/expect">
+      expect
+    </a>
+    script, which means they are written in 
+    <a href="http://www.fnal.gov/docs/products/tcl">
+      Tcl
+    </a>
+    -- the Tool Command Language. Variables and procedures which
+    are commonly defined in these files are examined in the
+    following sections. 
+    <br />
+    <h2>
+      Making simple changes in your .buildmanagerrc
+    </h2>
+    If you just want to turn on/off a particular host, do: 
+<pre>
+  set host_dat(do,bldlinux61)   1
+  set host_dat(do,bldosf1v40d)  0
+</pre>
+    in your ~/.buildmanagerrc, and leave the rest alone. If you
+    want to just add one alternate host do: 
+<pre>
+  set host_dat(LIST) "$host_dat(LIST) myhost"
+  set host_dat(h2f,myhost)   IRIX+5
+  set host_dat(do,myhost)    1
+</pre>
+    to change product roots, add a definition for proc
+    "productroot" to your .buildmanagerrc as described in the next
+    section. 
+    <h2>
+      Defining the product root
+    </h2>
+    buildmanager believes it knows where the working copy of a
+    given product for a given flavor is supposed to be. It
+    determines this by calling the Tcl subroutine 
+    <b>
+      productroot
+    </b>
+    with an argument of the flavor (or flavor and -q qualifiers).
+    This subroutine should return a string giving the pathname to
+    the directory involved. For example, consider the following
+    definition in your domainname.cfg file: 
+    <br />
+    <hr width="100%" />
+<pre>
+proc productroot { flavor } {
+    global product version env
 
-<H2>
-Config files read by buildmanager</H2>
-There are several configuration files for buildmanager that users or system
-managers may want to configure, and the configuration can be done in one
-of three places to affect any indivdual user:
-<UL>
-<LI>
-The system-wide ${BUILDMANAGER_DIR}/lib/system.cfg</LI>
-
-<LI>
-The cluster-wide ${BUILDMANAGER_DIR}/lib/<I>domainname</I>.cfg</LI>
-
-<LI>
-The users ${HOME}/.buildmanagerrc</LI>
-</UL>
-These files are searched for in this order, and are sourced into the buildmanager
-program, which is an&nbsp; <A HREF="http://www.fnal.gov/docs/products/expect">expect</A>&nbsp;
-script, which means they are written in&nbsp; <A HREF="http://www.fnal.gov/docs/products/tcl">Tcl</A>&nbsp;
--- the Tool Command Language.&nbsp;&nbsp; Variables and procedures which
-are commonly defined in these files are examined in the following sections.
-<BR>&nbsp;
-<H2>
-Defining the product root</H2>
-buildmanager believes it knows where the working copy of a given product
-for a given flavor is supposed to be.&nbsp; It&nbsp; determines this by
-calling the Tcl subroutine <B>productroot</B> with an argument of the flavor
-(or flavor and -q qualifiers).&nbsp; This subroutine should return a string
-giving the pathname to the directory involved.&nbsp; For example, consider
-the following definition in&nbsp; your domainname.cfg file:
-<BR>
-<HR WIDTH="100%">
-<PRE>proc productroot { flavor } {
-&nbsp;&nbsp;&nbsp; global product version env
-
-&nbsp;&nbsp;&nbsp; if { "$flavor" == "Linux+2" } {
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; return "/scratch/${product}-${version}-${flavor}"
-&nbsp;&nbsp;&nbsp; }
-&nbsp;&nbsp;&nbsp; return "/usr/products/build-scratch/${product}-${version}-${flavor}"
-}</PRE>
-
-<PRE>
-<HR WIDTH="100%"></PRE>
-This puts the working copy under /scratch for Linux systems, and under
-/usr/products/build-scratch otherwise.&nbsp;&nbsp; Note the use of the
-global variables <B>product </B>, <B>version</B> ,&nbsp; and <B>env</B>,
-which are the product name from the main buildmanager window, the version
-string from the main buildmanager window,&nbsp; and the UNIX&nbsp;environment
-hashed array, respectively.
-<BR>&nbsp;
-<H2>
-Defining the list of hosts</H2>
-The list of hosts buildmanager uses at startup is defined somewhat in pieces
-in the config file,
-<BR>all by setting entries in the <B>host_dat</B> hashed array.&nbsp;&nbsp;
-For each host you want to have buildmanager know about at startup, the
-following items are needed:
-<UL>
-<LI>
-The host name should appear in the list value of <B>host_dat(LIST)</B></LI>
-
-<LI>
-1 or 0 should be the value of <B>host_dat(do,<I>hostname</I>)</B>, which
-says if the host should initially have its entry checked on or off.</LI>
-
-<LI>
-The host's flavor should be the value of <B>host_dat(h2f,<I>hostname</I>),</B>
-which defines what Operating System string will be associated with that
-host</LI>
-</UL>
-So, an example with two hosts, one flavor Linux+2, one flavor IRIX+5 would
-be:
-<BR>
-<HR WIDTH="100%">
-<PRE>set host_dat(LIST)&nbsp;{linuxhost irixhost}</PRE>
-
-<PRE>set host_dat(do,linuxhost) 1
-set host_dat(do,irixhost)&nbsp; 1</PRE>
-
-<PRE>set host_dat(h2f,linuxhost) Linux+2
-set host_dat(h2f,irixhost)&nbsp; IRIX+5</PRE>
-
-<PRE>
-<HR WIDTH="100%"></PRE>
-
-<H2>
-Defining O.S. specific startup commands</H2>
-The hash os_dat contains various information associated with each O.S.
-string <I>flavor&nbsp;</I> defined in host_dat.&nbsp; In particular, it
-includes <B>os_dat(PLAT_COMMANDS,<I>flavor</I>)</B>,&nbsp; which are commands
-to run upon logging into machines of O.S. string <I>flavor</I>.&nbsp; Also,&nbsp;
-<B>os_dat(PATH,<I>flavor</I>)</B>&nbsp;contains the initial value for the
-PATH&nbsp;environment variable that&nbsp; buildmanager will set upon logging
-into the system.&nbsp;&nbsp;&nbsp; There should also be an operating system
-list&nbsp; in os_dat(LIST).&nbsp; Setting these values looks like:
-<PRE>
-<HR WIDTH="100%">set os_dat(LIST)&nbsp; {IRIX+5 Linux+2 SunOS+5}</PRE>
-
-<PRE>set os_dat(PATH,Linux+2) "/bin:/sbin:/usr/bin:/usr/local/bin:/usr/X11R6/bin"
-set os_dat(PATH,IRIX+5)&nbsp; "/usr/X11/bin:/usr/bsd:/usr/ccs/bin:/usr/local/bin"</PRE>
-
-<PRE>lappend os_dat(PLAT_COMMANDS,SunOS+5)&nbsp;&nbsp;&nbsp;&nbsp; {setenv OPENWINHOME "/usr/openwin"}
-set os_dat(PATH,SunOS+5) "/opt/SUNWspro/bin:/bin:/usr/bin:/usr/ccs/bin:\
+    if { "$flavor" == "Linux+2" } {
+        return "/scratch/${product}-${version}-${flavor}"
+    }
+    return
+"/usr/products/build-scratch/${product}-${version}-${flavor}"
+}
+</pre>
+<pre>
+</pre>
+    <hr width="100%" />
+    This puts the working copy under /scratch for Linux systems,
+    and under /usr/products/build-scratch otherwise. Note the use
+    of the global variables 
+    <b>
+      product
+    </b>
+    , 
+    <b>
+      version
+    </b>
+    , and 
+    <b>
+      env
+    </b>
+    , which are the product name from the main buildmanager window,
+    the version string from the main buildmanager window, and the
+    UNIX environment hashed array, respectively. 
+    <br />
+    <h2>
+      Defining the list of hosts
+    </h2>
+    The list of hosts buildmanager uses at startup is defined
+    somewhat in pieces in the config file, 
+    <br />
+    all by setting entries in the 
+    <b>
+      host_dat
+    </b>
+    hashed array. For each host you want to have buildmanager know
+    about at startup, the following items are needed: 
+    <ul>
+      <li>
+        The host name should appear in the list value of 
+        <b>
+          host_dat(LIST)
+        </b>
+      </li>
+      <li>
+        1 or 0 should be the value of 
+        <b>
+          host_dat(do,
+          <i>
+            hostname
+          </i>
+          )
+        </b>
+        , which says if the host should initially have its entry
+        checked on or off.
+      </li>
+      <li>
+        The host's flavor should be the value of 
+        <b>
+          host_dat(h2f,
+          <i>
+            hostname
+          </i>
+          ),
+        </b>
+        which defines what Operating System string will be
+        associated with that host
+      </li>
+    </ul>
+    So, an example with two hosts, one flavor Linux+2, one flavor
+    IRIX+5 would be: 
+    <br />
+    <hr width="100%" />
+<pre>
+set host_dat(LIST) {linuxhost irixhost}
+</pre>
+<pre>
+set host_dat(do,linuxhost) 1
+set host_dat(do,irixhost)  1
+</pre>
+<pre>
+set host_dat(h2f,linuxhost) Linux+2
+set host_dat(h2f,irixhost)  IRIX+5
+</pre>
+<pre>
+</pre>
+    <hr width="100%" />
+    <h2>
+      Defining O.S. specific startup commands
+    </h2>
+    The hash os_dat contains various information associated with
+    each O.S. string 
+    <i>
+      flavor
+    </i>
+    defined in host_dat. In particular, it includes 
+    <b>
+      os_dat(PLAT_COMMANDS,
+      <i>
+        flavor
+      </i>
+      )
+    </b>
+    , which are commands to run upon logging into machines of O.S.
+    string 
+    <i>
+      flavor
+    </i>
+    . Also, 
+    <b>
+      os_dat(PATH,
+      <i>
+        flavor
+      </i>
+      )
+    </b>
+    contains the initial value for the PATH environment variable
+    that buildmanager will set upon logging into the system. There
+    should also be an operating system list in os_dat(LIST).
+    Setting these values looks like: 
+<pre>
+</pre>
+    <hr width="100%" />
+<pre>
+set os_dat(LIST)  {IRIX+5 Linux+2 SunOS+5}
+</pre>
+<pre>
+set os_dat(PATH,Linux+2)
+"/bin:/sbin:/usr/bin:/usr/local/bin:/usr/X11R6/bin"
+set os_dat(PATH,IRIX+5) 
+"/usr/X11/bin:/usr/bsd:/usr/ccs/bin:/usr/local/bin"
+</pre>
+<pre>
+lappend os_dat(PLAT_COMMANDS,SunOS+5)     {setenv OPENWINHOME
+"/usr/openwin"}
+set os_dat(PATH,SunOS+5)
+"/opt/SUNWspro/bin:/bin:/usr/bin:/usr/ccs/bin:\
 /usr/ucb:/usr/openwin/bin:/usr/local/bin"
 
-<HR WIDTH="100%"></PRE>
-&nbsp;
-<H2>
-Changing the Commands menu</H2>
-The commands menu is built from the array cmd_menu, which is a hashed array
-mapping from strings which will appear in the menu to internal buildmanager
-Tcl commands.&nbsp; It is reccomended you always include at least the following
-ones to be compatable with the buildmanager documentation:
-<P>
-<HR WIDTH="100%">
-<PRE>array set cmd_menu {
-&nbsp;&nbsp;&nbsp; {cd}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel&nbsp; "cd %D"}
-&nbsp;&nbsp;&nbsp; {cvs export}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_taketurns "cd %d; cvs export -r %V -d %T %P" }
-&nbsp;&nbsp;&nbsp; {cvs checkout}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel&nbsp; "cd %d; cvs co -r %V -d %T -A %P" }
-&nbsp;&nbsp;&nbsp; {make build_n_test} {cmd_parallel "(cd %D; make build_n_test)"}
-&nbsp;&nbsp;&nbsp; {setup -q build?}&nbsp;&nbsp; {cmd_parallel&nbsp; "cd %D; setup -q 'build?' -r `pwd` -M ./u
+</pre>
+    <hr width="100%" />
+    <h2>
+      Changing the Commands menu
+    </h2>
+    The commands menu is built from the array cmd_menu, which is a
+    hashed array mapping from strings which will appear in the menu
+    to internal buildmanager Tcl commands. It is reccomended you
+    always include at least the following ones to be compatable
+    with the buildmanager documentation: 
+    <hr width="100%" />
+<pre>
+array set cmd_menu {
+    {cd}                {cmd_parallel  "cd %D"}
+    {cvs export}        {cmd_taketurns "cd %d; cvs export -r %V -d
+%T %P" }
+    {cvs checkout}      {cmd_parallel  "cd %d; cvs co -r %V -d %T
+-A %P" }
+    {make build_n_test} {cmd_parallel "(cd %D; make build_n_test)"}
+    {setup -q build?}   {cmd_parallel  "cd %D; setup -q 'build?' -r
+`pwd` -M ./u
 ps -m %P.table %P"}
-&nbsp;&nbsp;&nbsp; {setup}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel&nbsp; "cd %D; setup&nbsp; -r `pwd` -M ./ups -m %P.ta
+    {setup}             {cmd_parallel  "cd %D; setup  -r `pwd` -M
+./ups -m %P.ta
 ble %P"}
-&nbsp;&nbsp;&nbsp; {make declare}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_taketurns "(cd %D; make declare)"}
-&nbsp;&nbsp;&nbsp; {make all}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel&nbsp; "(cd %D; make all)"}
-&nbsp;&nbsp;&nbsp; {make test}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel&nbsp; "(cd %D; make test)"}
-&nbsp;&nbsp;&nbsp; {make clean}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel&nbsp; "(cd %D; make clean)"}
-&nbsp;&nbsp;&nbsp; {make kits}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_taketurns "(cd %D; make kits)"}
-&nbsp;&nbsp;&nbsp; {make local}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_taketurns "(cd %D; make local)"}
-&nbsp;&nbsp;&nbsp; {remove source}&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel&nbsp; "cd %d; rm -rf %T"}
-&nbsp;&nbsp;&nbsp; {cvs update}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel "(cd %D; cvs update -d)"}
-&nbsp;&nbsp;&nbsp; {cvs update -A}&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel "(cd %D; cvs update -A)"}
-&nbsp;&nbsp;&nbsp; {clear auto}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {clear_statepending}
-&nbsp;&nbsp;&nbsp; {interrupt}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel&nbsp; "\x003"}
-&nbsp;&nbsp;&nbsp; {exit}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; {cmd_parallel&nbsp; "exit"; after 5000 exit}
+    {make declare}      {cmd_taketurns "(cd %D; make declare)"}
+    {make all}          {cmd_parallel  "(cd %D; make all)"}
+    {make test}         {cmd_parallel  "(cd %D; make test)"}
+    {make clean}        {cmd_parallel  "(cd %D; make clean)"}
+    {make kits}         {cmd_taketurns "(cd %D; make kits)"}
+    {make local}        {cmd_taketurns "(cd %D; make local)"}
+    {remove source}     {cmd_parallel  "cd %d; rm -rf %T"}
+    {cvs update}        {cmd_parallel "(cd %D; cvs update -d)"}
+    {cvs update -A}     {cmd_parallel "(cd %D; cvs update -A)"}
+    {clear auto}        {clear_statepending}
+    {interrupt}         {cmd_parallel  "\x003"}
+    {exit}              {cmd_parallel  "exit"; after 5000 exit}
 }
-</PRE>
+</pre>
+<pre>
+</pre>
+    <hr width="100%" />
+    Note that the menu is generated by sorting the hash keys
+    (otherwise they come out in no particular order) 
+    <br />
+    so you may want to put leading numbers or something to make
+    them come out in a given order. 
+    <p>
+      You can modify these individual commands, or add more, by
+      setting individual items in the
+      <br />
+      cmd_menu array in your config files as well, for example
+      <br />
+    </p>
+<pre>
+set cmd_menu(check disk space) {cmd_parallel "df  %D"}
+</pre>
+    <p>
+      <br />
+      will add a "check disk space" item to the menu which will run
+      "df" on all of the hosts.
+    </p>
+  </body>
+</html>
 
-<PRE>
-<HR WIDTH="100%"></PRE>
-Note that the menu is generated by sorting the hash keys (otherwise they
-come out in no particular order)
-<BR>so you may want to put&nbsp; leading numbers or something to make them
-come out in a given order.
-<P>You can modify these individual commands, or add more, by setting individual
-items in the
-<BR>cmd_menu array in your config files as well, for example
-<BR>&nbsp;
-<PRE>set cmd_menu(check disk space) {cmd_parallel "df&nbsp; %D"}</PRE>
-
-<P><BR>will&nbsp; add a "check disk space"&nbsp;item to the menu which
-will run "df"&nbsp;on all of the hosts.
-<H2>
-</H2>
-&nbsp;
-</BODY>
-</HTML>
