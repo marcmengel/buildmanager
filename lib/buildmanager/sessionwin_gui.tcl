@@ -32,7 +32,8 @@ if {![winfo exists $w.b]} {button $w.b}
 
 # ---------------- Checkbutton $w.b2 --------------------
 if {![winfo exists $w.b2]} {checkbutton $w.b2}
-$w.b2 configure -text "Log" -command "toggle_logging $w"
+$w.b2 configure -text "Log" -command "toggle_logging $w" \
+		    -selectcolor green
 
 # ---------------- Frame  $w.v ---------------------
 if {![winfo exists $w.v]} {frame $w.v}

@@ -147,6 +147,8 @@ proc expect_loop {} {
     set outputlines 0
     expect {
 	-i sessionlist -re "\[^\r\]+" {
+            incr outputlines 
+	    if { $outputlines % 8  == 0 } { update }
 	    if { [regexp $allwatchre $expect_out(0,string)] } {
 
 	    # puts "match allwatchere: $expect_out(0,string)"
@@ -222,8 +224,6 @@ proc expect_loop {} {
         }
 	-i sessionlist -re "\[\r\n\]+" {
 	    update_status Running
-            incr outputlines 
-	    if { $outputlines % 16 == 0 } { update }
 	    exp_continue
 	}
 	-i sessionlist timeout {
