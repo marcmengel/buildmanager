@@ -16,17 +16,20 @@ source ${dir}/cmd_machine.tcl
 source ${dir}/scrollframe.tcl
 
 set loginok 0
+
 proc getlogininfo { reason } {
      global logname password
      global loginok
      global login_reason
+     global logininfoflag
 
      set login_reason $reason
-     if { "passwd_popup" == [ info command passwd_popup ]} {
-         passwd_popup .pop 
+     if { "passwd_popup" == [info command passwd_popup]} {
+	 update
+	 passwd_popup .pop
 	 tkwait window .pop
-	 set loginok 1
      } else {
+	 puts $reason
 	 puts -nonewline "login: "
 	 flush stdout
 	 gets stdin logname
@@ -35,9 +38,11 @@ proc getlogininfo { reason } {
 	 flush stdout
 	 gets stdin password
 	 exec stty echo
+	 puts ""
+	 flush stdout
     }
+    set loginok 1
 }
-
 
 set bwcount 0
 
@@ -51,7 +56,8 @@ proc updateflavorbuttons { w w2 } {
         if { ![info exists os_dat(f2bw,$flavor)] } {
 	    checkbutton $bw -text "$flavor" \
 		    -variable "os_dat(do,$flavor)" \
-		    -command "updatehostwindows $w2"
+		    -command "updatehostwindows $w2" \
+		    -selectcolor green
 	    pack $bw -side left
 	    set os_dat(f2bw,$flavor) $bw
 	}
@@ -104,180 +110,178 @@ proc updatehostwindows { w } {
 
     # log in any new sessions
 
-    loginsessions $newsessions
-}
-
-proc login_host { s host {depth  0}} {
-    global logname password expect_out timeout
-
-    set timeout 60
-    set spawn_id $s
-    set count 0
-    expect { 
-		-re {: $}    {}
-		timeout	 {
-			exp_send "\r"; 
-			incr count
-			if {$count < 3} exp_continue
-		}
-
-    }
-    update_bytes
-    exp_send "$logname\r"
-    expect word:    
-    update_bytes
-    exp_send "$password\r"
-    expect -re "\n(.*)\n"
-    update_bytes
-    if [catch {set resp $expect_out(1,string)}] {
-	set resp "huh"
-    }
-    # puts "resp is $resp"
-    if { [ regexp {[Ii]ncorrect|[In]valid|[Uu]nkown|[Uu]nable} $resp ] } {
-	if { $depth < 4 } {
-	    getlogininfo "Login failed on host $host, please re-enter login info"
-	    login_host $s $host [expr $depth + 1 ]
-	} else {
-	    drop_session $s
-	}
-    }
-}
-
-proc login_phase2 { s host } {
-    global promptre logname password expect_out
-
-    # now try to get the right prompt.  We could get asked for a
-    # password again if the users account does a klog or something.
-    # puts "expecting many things..."
-    set timeout 60
-    set spawn_id $s
-
-    expect  {
-	"ssword:"	{update_bytes; exp_send -i $s "$password\r";exp_continue }
-	{Last login}	{update_bytes; exp_continue}
-	timeout		{exp_continue}
-	-re $promptre	{update_bytes}
-    }
-
-    exp_send "exec /bin/sh\r"
-
-    # puts "setting prompt..."
-    expect    -re $promptre
-    update_bytes
-
-    exp_send  "PS1='<$host> '\r"
-    expect    "<$host> '"
-    update_bytes
-
-    # puts "we think we have a prompt again"
-    expect -re $promptre
-    update_bytes
-    exp_send "\r"
-
-    if {[info exists os_dat(INIT_COMMANDS)]} {
-	foreach cmd $os_dat(INIT_COMMANDS) {
-	    exp_send "$cmd\r"
-	    expect -re $promptre
-	    update_bytes
-	}
-    }
-
-    exp_send "\r"
-}
-
-proc login_phase3 { s host } {
-    global promptre logname password expect_out spawn_id
-    global sw_dat
-    global os_dat
-    global env
-   
-    set spawn_id $s
-
-    set flavor $os_dat(s2f,$s)
-    # puts "expecting another prompt"
-    expect -re $promptre
-    update_bytes
-
-    if {[info exists os_dat(PATH,$flavor)]} {
-        exp_send "PATH=$os_dat(PATH,$flavor):\$PATH; export PATH\r"
-    }
-
-    if {[info exists os_dat(ENVVARS)]} {
-	foreach var $os_dat(ENVVARS) {
-	    if { [info exists env($var)] } {
-		expect -re $promptre
-		update_bytes
-		exp_send "$var='$env($var)'; export $var\r"
-	    } else {
-		puts stderr "Warning: environment variable $var not set!"
-	    }
-	}
-    }
-
-    if {[info exists os_dat(COMMANDS)]} {
-	foreach cmd $os_dat(COMMANDS) {
-	    expect -re $promptre
-	    update_bytes
-	    exp_send "$cmd\r"
-	}
-    }
-    if {[info exists os_dat(PLAT_COMMANDS,$flavor)]} {
-	foreach cmd $os_dat(PLAT_COMMANDS,$flavor) {
-	    expect -re $promptre
-	    update_bytes
-	    exp_send "$cmd\r"
-	}
-    }
-
-    expect -re $promptre
-    update_bytes
-    exp_send "set -x\r"
-
-    expect -re $promptre
-    update_bytes
-    exp_send [cmd_substitute "test -d  %d || mkdir -p %d\r" $s]
+    newloginsessions $newsessions
 }
 
 proc set_everything_state { win state } {
     if { [winfo class $win] != "Text" } {
-        catch {$win configure -state $state}
-	catch {$win flash}
+        catch {$win configure -state $state} 
+	catch {$win configure -foreground [$win cget -foreground]} 
     }
     foreach kid [winfo children $win] {
 	set_everything_state $kid $state
     }
 }
 
-proc loginsessions  { newsessions } {
-    global sessionlist sw_dat
+proc newloginsessions { newsessions } {
+    global logname password expect_out timeout
+    global promptre
+    global sessionlist sw_dat os_dat
+    global env
+    global logsessions
 
     set_everything_state . disabled
-    update
-    #
-    # broken into phases to use long delay between entering password
-    # and finishing .profile type stuff to start login of other hosts
-    #
-    foreach phase {host phase2 phase3} {
-	foreach s $newsessions {
-	    if { [lsearch -exact  $sessionlist $s] > -1 } {
-	        setstatus $s Login
-	        if { [catch {login_$phase $s $sw_dat(s2h,$s)} ] } {
-		    drop_session $s;
+
+    if {[info exists os_dat(ENVVARS)]} {
+	foreach var $os_dat(ENVVARS) {
+	    if { ![info exists env($var)] } {
+		puts "buildmanager: warning, $var not set to pass through!"
+	    }
+	}
+    }
+
+    # build up sequence of commands to type in
+
+    foreach s $newsessions {
+        set w $sw_dat(s2w,$s)
+        set flavor $os_dat(w2f,$w)
+	set cmdlist($s) {}
+	lappend cmdlist($s) "exec /bin/sh"
+	lappend cmdlist($s) "PS1='<$sw_dat(s2h,$s)> '"
+        if {[info exists os_dat(INIT_COMMANDS)]} {
+	    foreach cmd $os_dat(INIT_COMMANDS) { 
+		lappend cmdlist($s) $cmd
+	    }
+	}
+        if {[info exists os_dat(PATH,$flavor)]} {
+  	    lappend cmdlist($s) "PATH=$os_dat(PATH,$flavor):\$PATH; export PATH"
+	}
+
+	if {[info exists os_dat(ENVVARS)]} {
+	    foreach var $os_dat(ENVVARS) {
+		if { [info exists env($var)] } {
+		    lappend cmdlist($s)  "$var='$env($var)'; export $var"
 		}
+	    }
+	}
+	if {[info exists os_dat(COMMANDS)]} {
+	    foreach cmd $os_dat(COMMANDS) {
+		lappend cmdlist($s) $cmd
+	    }
+	}
+	if {[info exists os_dat(PLAT_COMMANDS,$flavor)]} {
+	    foreach cmd $os_dat(PLAT_COMMANDS,$flavor) {
+		lappend cmdlist($s) $cmd
+	    }
+	}
+	lappend cmdlist($s) "set -x"
+	set ncmds($s) [llength $cmdlist($s)]
+	set curcmd($s) 0
+	set logfails($s) 0
+	setstatus $s Login
+    }
+
+    set logfail {([Ii]ncorrect|[In]valid|[Uu]nkown|[Uu]nable)}
+    set timesasked 0
+    
+    set logsessions $newsessions
+    set loginfailed 1
+
+    while {[llength $logsessions] > 0} {
+        set loginfailed 0
+	expect {
+	    -i logsessions -re {ast login: } {
+		    update_bytes
+		    exp_continue 
+	    }
+	    -i logsessions -re {ogin: $} 	 { 
+		    set s $expect_out(spawn_id)
+		    update_bytes
+		    exp_send -i $s "$logname\r"
+		    exp_continue 
+	    }
+	    -i logsessions -re {word: ?$} 	 { 
+		    set s $expect_out(spawn_id)
+		    update_bytes
+		    exp_send -i $s "$password\r"
+		    exp_continue 
+	    }
+	    -i logsessions -re $logfail	 {
+		update_bytes
+		set s $expect_out(spawn_id)
+		set host $sw_dat(s2h,$s)
+
+
+		set loginfailed $s
+	    }
+	    -i logsessions -re $promptre	 { 
+
+		set s $expect_out(spawn_id)
+		update_bytes
+		exp_send -i $s "[lindex $cmdlist($s) $curcmd($s)]\r"
+		setstatus $s "Setup - $curcmd($s)"
+		incr curcmd($s)
+		if { $curcmd($s) > $ncmds($s) } {
+		    set index [lsearch -exact $logsessions $s]
+		    set logsessions [lreplace $logsessions $index $index]
+		}
+		if {[llength $logsessions] > 0} {
+		    exp_continue
+		}
+	    }
+	    -i logsessions -re "\[\r\n\]+"	{ 
+		    update_bytes
+		    exp_continue
+	    }
+	    -i logsessions timeout	 { 
+		    exp_continue
+	    }
+	    -i logsessions eof	 { 
+		set s $expect_out(spawn_id)
+		set host $sw_dat(s2h,$s)
+
+		puts "lost connection on host $host"
+		set index [lsearch -exact $logsessions $s]
+		set logsessions [lreplace $logsessions $index $index]
+		drop_session $s
+		if {[llength $logsessions] > 0} {
+		    exp_continue
+		}
+	    }
+	}
+	if {$loginfailed != 0 } {
+	    set s $loginfailed
+	    incr logfails($s)
+
+	    if {$logfails($s) < 4 } {
+
+		if {$logfails($s) > $timesasked } {
+		    incr timesasked
+		    sleep 1
+		    update
+	            getlogininfo "Login failed on host $host, please re-enter login info"
+		}
+
+	    } else {
+		puts "login failed repeatedly on host $host"
+                set index [lsearch -exact $logsessions $s]
+                set logsessions [lreplace $logsessions $index $index]
+		drop_session $s
 	    }
 	}
     }
     set_everything_state . enabled
-    update
 }
 
 proc update_bytes {} {
     global expect_out sw_dat
 
-    rcvchars $sw_dat(s2w,$expect_out(spawn_id)) $expect_out(buffer)
+    if {[info exists expect_out(spawn_id)]} {
+       rcvchars $sw_dat(s2w,$expect_out(spawn_id)) $expect_out(buffer)
+    }
 }
 
-proc update_status { status} {
+proc update_status { status } {
     global expect_out sw_dat pending1 pending2
 
     update_bytes
@@ -296,7 +300,6 @@ proc update_status { status} {
 proc drop_session { s } {
     global sessionlist sw_dat os_dat
 
-    sleep 1
     set w $sw_dat(s2w,$s)
     set flavor $os_dat(w2f,$w)
     set os_dat(do,$flavor) 0
@@ -563,7 +566,7 @@ puts $errortolist
 	puts $errortolist
     }
     if {$res == 2} {
-	puts $errorlist
+	puts $errortolist
 	exit
     }
 }
@@ -573,6 +576,7 @@ proc main {} {
     bind Entry <Delete> [bind Entry <BackSpace>]
     init 
     while [ catch expect_loop result] {
+	update
 	error_dialog expect_loop $result 
     }
     exit
