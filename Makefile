@@ -89,10 +89,11 @@ declare: real_declare
 #---------------------------------------------------------------------------
 # 		*** Do not change anything below this line: ***
 #     it will go away if you # update the makefile from the templates.
-# - - - - - - - - - - - - - - cut here - - - - - - - - - - - - - - - - - -
+# - - - - - - - - - - - - - cut here - - - - - - - - - - - - -
 #
 #---------------------------------------------------------------------------
 # Standard Product Distribution/Declaration Targets
+#    $Id$
 #---------------------------------------------------------------------------
 #
 
@@ -111,11 +112,13 @@ declare: real_declare
 # * Finally echo the filename and do a table of contents to show it worked
 #
 distribution: clean $(UPS_SUBDIR)/declare.dat .manifest
+	echo "creating $(DISTRIBUTIONFILE)..."
 	@: > .header
 	@tar cf $(DISTRIBUTIONFILE) .header
 	@$(LISTALL) | xargs tar uf $(DISTRIBUTIONFILE)
 	@echo $(DISTRIBUTIONFILE):
 	@tar tvf $(DISTRIBUTIONFILE)
+	@touch $@
 
 kits: addproduct
 
@@ -128,12 +131,26 @@ addproduct: dproducts_is_set distribution
 	$(ADDPRODUCT)
 	rm $(DISTRIBUTIONFILE)
 
+autokits: dproducts_is_set distribution
+	echo "Press enter to update database? \c"
+	read line
+	$(ADDPRODUCT)
+	rm $(DISTRIBUTIONFILE)
+	
 # local --  Make a local copy of the product directly
 # we do this by running $(LISTALL) and having cpio make a direct copy
 # then we cd over there and do a check_manifest to make sure the copy 
 #      worked okay.
 #
 local: clean $(UPS_SUBDIR)/declare.dat .manifest
+	test -d $(LOCAL) || mkdir -p $(LOCAL)
+	$(LISTALL) | cpio -dumpv $(LOCAL)
+	cd $(LOCAL); make check_manifest
+
+autolocal: dproducts_is_set distribution
+	echo "Press enter to update database? \c"
+	read line
+	test -d $(LOCAL) || mkdir -p $(LOCAL)
 	$(LISTALL) | cpio -dumpv $(LOCAL)
 	cd $(LOCAL); make check_manifest
 
@@ -152,15 +169,6 @@ real_declare: dproducts_is_set $(UPS_SUBDIR)/Version
 undeclare: dproducts_is_set $(UPS_SUBDIR)/Version 
 	$(UPS_UNDECLARE)
 
-# test: run regression tests on "clean" product
-#      some religious discussions have centered on whether we should
-#      require a clean before testing; it is this way because we want
-#      to be sure clean doesn't remove anything neccesary to operating
-#      the product.
-#
-test: clean
-	sh test/TestScript
-
 delproduct:
 	$(DELPRODUCT)
 
@@ -170,13 +178,15 @@ delproduct:
 # make clean (see above).
 # 
 build_n_test:
-	set +e					;\
-	. /usr/local/etc/setups.sh		;\
-	PRODUCTS="$(DPRODUCTS) $$PRODUCTS" 	;\
-	export PRODUCTS				;\
-	make FLAVOR=$(FLAVOR) declare		;\
+	set +e						;\
+	. /usr/local/etc/setups.sh			;\
+	PRODUCTS="$(DPRODUCTS) $$PRODUCTS" 		;\
+	export PRODUCTS					;\
+	make FLAVOR=$(FLAVOR) declare			;\
 	setup -b -f $(FLAVOR) $(PROD) $(VERS)||true	;\
-	make all test
+	make all 					;\
+	setup -f $(FLAVOR) $(PROD) $(VERS)||true	;\
+	make test
 
 #
 #---------------------------------------------------------------------------
@@ -221,7 +231,8 @@ $(UPS_SUBDIR)/Version:
 	echo $(VERS) > $(UPS_SUBDIR)/Version
 
 $(UPS_SUBDIR)/upd_files.dat:
-	$(LISTALL) > $@
+	echo "creating $@..."
+	@ $(LISTALL) > $@
 
 #---------------------------------------------------------------------------
 # .manifest file support
@@ -234,7 +245,8 @@ MANIFEST = $(LISTALL) | 				\
 		sort +1
 
 .manifest: FORCE
-	$(MANIFEST) > $@
+	echo "creating .manifest..."
+	@ $(MANIFEST) > $@
 
 check_manifest:
 	$(MANIFEST) > /tmp/check$$$$ 	;\
@@ -281,6 +293,15 @@ LISTALL =  ( \
 # Ugly Definitions for ups
 #---------------------------------------------------------------------------
 #
+
+#
+# since we don't assume FUE, we need to fake out what funame/ups flavor 
+# would give us...
+# note the plus sign in DEFAULT_CUST is really part of the string, not
+# appending to some other value or anything.
+DEFAULT_OS=`uname -s | sed -e 's/IRIX64/IRIX/'`
+DEFAULT_CUST=+`((uname -s | grep AIX >/dev/null && uname -v)||uname -r) | \
+		sed -e 's|\..*||'`
 
 # These are all basic ups commands with loads of options.
 UPS_EXIST= \
