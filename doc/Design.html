@@ -1,0 +1,253 @@
+<!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML 2.0//EN">
+<!--Converted with LaTeX2HTML 96.1-h (September 30, 1996) by Nikos Drakos (nikos@cbl.leeds.ac.uk), CBLU, University of Leeds -->
+<HTML>
+<HEAD>
+<TITLE>&nbsp;FB001 A Draft Design for a MultiPlatform Build Manager</TITLE>
+<META NAME="description" CONTENT="&nbsp;FB001 A Draft Design for a MultiPlatform Build Manager">
+<META NAME="keywords" CONTENT="BuildFrontEnd">
+<META NAME="resource-type" CONTENT="document">
+<META NAME="distribution" CONTENT="global">
+<LINK REL=STYLESHEET HREF="BuildFrontEnd.css">
+</HEAD>
+<BODY LANG="EN" >
+ <IMG WIDTH=37 HEIGHT=24 ALIGN=BOTTOM ALT="next" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/next_motif.gif"> <IMG WIDTH=26 HEIGHT=24 ALIGN=BOTTOM ALT="up" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/up_motif_gr.gif"> <IMG WIDTH=63 HEIGHT=24 ALIGN=BOTTOM ALT="previous" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/previous_motif.gif">   <BR>
+<BR> <P>
+<P>
+<H1 ALIGN=CENTER>&nbsp;FB001<BR> 
+A Draft Design for a MultiPlatform Build Manager</H1>
+<P ALIGN=CENTER><STRONG>Marc W. Mengel</STRONG></P><P>
+<P ALIGN=CENTER><STRONG>October 17, 1997</STRONG></P><P>
+<P>
+<H3 CLASS=ABSTRACT>Abstract:</H3>
+<P CLASS=ABSTRACT>Previous work on build systems at Fermilab has led to the conclusion
+that a better tool to help manage builds on multiple platforms will
+greatly boost productivity in getting products released on multiple
+platforms.
+<P>
+</P><P>
+<H1><A NAME="SECTION00010000000000000000">Overview</A></H1>
+<P>
+Many users when faced with the task of building software on multiple
+platforms simply use a multiple window display, log onto each system,
+and switch windows, starting builds in each one. The process is somewhat
+error prone however, due to the problem of remembering what has been
+done on each platform, and not all of the screens fitting on the display
+at once. Two products have been used to attempt to address these issues;
+<EM>uas_build <EM>and <EM>happi<EM>. While both have benefits and
+drawbacks, the author believes a tool is possible which has the benefits
+of both and a few features that they both lack.
+<P>
+</EM></EM></EM></EM><H1><A NAME="SECTION00020000000000000000">Benifits of previous implementations</A></H1>
+<P>
+The approach that <EM>happi<EM><A NAME="tex2html1" HREF="#87"><IMG  ALIGN=BOTTOM ALT="gif" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/foot_motif.gif"></A> takes somewhat solves the tracking problem by putting all of the
+builds into a state machine, which ensures that we know how far along
+each build has gotten; <EM>happi <EM>also provides a user interface
+showing the output from multiple builds proceeding in parallel simultaneously
+on the screen, which is an improvement over multiple X terminals,
+etc. The approach taken by the <EM>uas_build <EM>package was to automatically
+launch make commands in parallel on multiple platforms, and display
+the output in xterm windows, one per host. This allowed flexibility
+to launch arbitrary commands in arbitrary order on the various build
+systems in the process of building the software.
+<P>
+</EM></EM></EM></EM></EM></EM><H1><A NAME="SECTION00030000000000000000">Limitiations of previous implementations</A></H1>
+<P>
+Both of these solutions (<EM>happi <EM>and <EM>uas_build<EM>)are
+somewhat limited, in that the user cannot interact with the sessions
+on the build machines, rather they are confined to pre-defined actions
+in the build system, often forcing a user to have a separate login
+session on the build systems to see what's really going on, which
+generally leads to the user running partial builds that the build
+system is unaware of, and then having to re-do them through the build
+system if the build system is to keep track of the progress. <EM>happi
+<EM>enforces a very coarse-grained state machine, where recovering
+from any errors in the build process involves starting the whole build
+over from scratch.
+<P>
+A second issue is the complexity of the build system; <EM>happi <EM>is
+a multiple-layered system, with each layer written in a different
+scripting language. <EM>uas_build <EM>uses a makefile-template system
+which was intended to free the user from having to know the details
+of Makefiles, but which led to more confusion due to synchonization
+issues between the config file and the Makefiles built from it.
+<P>
+Both systems in their original form use symbolic link ``forests'' to
+provide the illusion of multiple copies of the sources, in an attempt
+to cut down on copies and divergence between copies. This implementation
+leads to subtle problems if symbolic links get added for non-source
+files, etc. Since the lab as a whole is moving towards CVS as a version
+control system, this seems a much better choice for maintaining mulitple
+source trees for multiple builds.
+<P>
+Another problem with the previous build systems has been with authentication
+issues; if a build needs to be done on a system separate from the
+usual build cluster environment (for things like Oracle licenses,
+use of node-locked software checking tools, etc), running commands
+on that system can be difficult, or if the user needs access to mixed
+AFS non-AFS systems, using rsh often doesn't get the user authenticated.
+<P>
+</EM></EM></EM></EM></EM></EM></EM></EM></EM></EM><H1><A NAME="SECTION00040000000000000000">Proposed solution</A></H1>
+<P>
+I propose we use a simple framework to manage this problem which combines
+the nice user interface of <EM>happi <EM>with even more flexibility
+than <EM>uas_build<EM>. We can use the <EM>expect <EM>package to
+manage multiple telnet sessions for us. We have existing <EM>expect
+<EM>scripts which handle logging into various sorts of systems, and
+others which interconnect Tk text windows with an <EM>expect <EM>session.
+This makes it possible to build a simple screen interface which logs
+onto multiple systems, and presents each system's login session with
+a text window, where typing in that window works like a regular terminal
+session and sends characters to the remote system.
+<P>
+Buttons can be added to this system which send specific canned commands
+to all or some of the sessions thus connected, and if this is done
+with appropriate system specific substitutions, various operations
+can be launched on those systems that will proceed in parallel. The
+interaction script can also be taught to look for particular keyword
+or pattern based strings coming back from the build session and do
+things like highlight text and note success or failure of given actions.
+We could add standard messages to our new Makefile templates to facilitate
+this understanding.
+<P>
+At this point, by integrating existing code fragments, we can (as
+before) perform specific canned actions on a list of build machines,
+and keep track of their success/failure. But we can also click on
+one of the windows and interact directly with the session, and successful
+completion of various tasks will still be noted, since the same watcher
+that notes the completion of automated tasks will see success messages
+when they result from user interaction.
+<P>
+Platform specific initialization can be included in the login portion
+of the package, simply by checking the platform type when we log in
+and performing the appropriate actions.
+<P>
+</EM></EM></EM></EM></EM></EM></EM></EM></EM></EM><H1><A NAME="SECTION00050000000000000000">Milestones</A></H1>
+<P>
+I propose the project be built in several stages, each of which will
+be useful in itself, with each stage building on the previous ones.
+<P>
+<H2><A NAME="SECTION00051000000000000000">Initial prototype</A></H2>
+<P>
+The initial prototype would simply be capable of logging into multiple
+systems, presenting the interaction windows for each system, and letting
+the user enter commands that will execute on all systems simultaneously.
+It is estimated that this will be 10..20 hours of effort.
+<P>
+<H2><A NAME="SECTION00052000000000000000">Platform-specifics</A></H2>
+<P>
+A second version would add platform specific initialization (which
+would combine information already recorded in <EM>uas_build <EM>and
+<EM>happi <EM>about command search paths, etc.) to the system, and
+flavor replacement in the command execution. That means you could
+tell the tool to issue a command like:
+<P>
+<TT>setup -f %F product vx_y<BR><BR>
+<P>
+and the appropriate flavor string would be automatically substituted
+on each platform. This allows testing of command sequences that will
+be made into canned actions in the next phase. This should be 5..10
+hours of work.
+<P>
+</EM></EM></EM></EM></TT><H2><A NAME="SECTION00053000000000000000">Standard Actions</A></H2>
+<P>
+Next, various standard actions could be added as buttons or pull-down
+menus, etc. that would put the standard make targets in our makefiles
+(and other common actions), as canned sequences attached to buttons.
+Generating and testing a short list of these would take only a few
+hours, but this is an activity that will probably continue throughout
+the life of the product as choices of what is ``standard'' are extended.
+<P>
+<H2><A NAME="SECTION00054000000000000000">Status Recognition</A></H2>
+<P>
+Code could and probably should be added to the event loop dealing
+with text returning from the remote systems to recognize:
+<P>
+<OL>
+<LI> command completion (indicated by printing a standardized prompt)
+<LI> status messages printed by the standard actions from the previous
+section, or printed by the makefile templates on completion of various
+tasks
+<LI> various error message formats, so that error messages could be highlighted
+in red, for example.
+<P>
+</OL>
+<P>
+This would allow the addition of a status icon next to each system
+interaction window which would indicate the state of the activity
+on the given system. Then a user could see at a glance that a command
+was still running, or that the command failed, etc. This is another
+area that could be incrementally improved through the life of the
+product, after an initial few hours of work to get underway. A status
+icon indicating part 1, above, should probably be added to a very
+early version as a proof of concept, and other bits and pieces could
+be added as needed.
+<P>
+<H1><A NAME="SECTION00060000000000000000">State information</A></H1>
+<P>
+The build system should be able to determine, for a given product
+on a given system, whether the product has been checked out of CVS
+into its build area, whether a local instance of the product has been
+declared to the appropriate UPS database, if the software has passed
+its regression tests (this should be determined by as standardized
+stamp file in the product build makefile templates) and if the product
+has been distributed.
+<P>
+It should eventually have standard actions to attempt to step through
+these stages, but to let the user intervene if a stage fails. If the
+user intervention succeeds, then the automatic process can pick back
+up where the user left off.
+<P>
+<H1><A NAME="SECTION00070000000000000000">Configuration</A></H1>
+<P>
+The build system should be configurable on a per-system, per-group,
+and per-user basis. Lists of systems upon which to build, system types,
+etc. should be obtained from one of several sources so that groups
+can share pertinent configuration information, but override it when
+needed. Information that the system needs to maintain includes:
+<P>
+<UL>
+<LI> List of platforms and corresponding nodes upon which to build
+<LI> Location of build directories on those nodes (parameterized by product,
+flavor, &amp; version)
+<LI> Special login information (e.g. on host fred you need to log on, then
+run ``klog'' as well)
+<LI> UPS database to use for development product declarations
+<LI> Distribution mechanism (e.g. put into kits with addproduct, installed
+as a local product, etc.)
+<P>
+</UL>
+<P>
+This information should be looked for:
+<P>
+<UL>
+<LI> In the user's home directory
+<LI> In the product area in a file specific to their primary group-id
+<LI> In the product area in a file specific to the current system
+<LI> In a general product config file.
+<P>
+</UL>
+<P>
+That way, sites using the build system in the ``standard'' way will
+have very little to override, but individual users can tailor the
+behavior of the build for their own purposes (for example to have
+their builds use a file tree under their home directory rather than
+one in a system-wide location). As the product matures, these pieces
+of data should be configurable from within the system.
+<P>
+<H1><A NAME="SECTION00080000000000000000">  About this document ... </A></H1>
+<P>
+ <STRONG>&nbsp;FB001<BR> 
+A Draft Design for a MultiPlatform Build Manager</STRONG><P>
+This document was generated using the <A HREF="http://www-dsed.llnl.gov/files/programs/unix/latex2html/manual/"><STRONG>LaTeX</STRONG>2<tt>HTML</tt></A> translator Version 96.1-h (September 30, 1996) Copyright &#169; 1993, 1994, 1995, 1996,  <A HREF="http://cbl.leeds.ac.uk/nikos/personal.html">Nikos Drakos</A>, Computer Based Learning Unit, University of Leeds. <P> The command line arguments were: <BR>
+<STRONG>latex2html</STRONG> <tt>BuildFrontEnd.tex</tt>. <P>The translation was initiated by Marc Mengel on Wed Dec  3 12:05:20 CST 1997<DL> <DT><A NAME="87">...<EM>happi<EM></A><DD>
+See the <I>ASIS Product Providers Guide
+</I>
+<PRE>
+</PRE> </DL>
+<HR><IMG WIDTH=37 HEIGHT=24 ALIGN=BOTTOM ALT="next" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/next_motif.gif"> <IMG WIDTH=26 HEIGHT=24 ALIGN=BOTTOM ALT="up" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/up_motif_gr.gif"> <IMG WIDTH=63 HEIGHT=24 ALIGN=BOTTOM ALT="previous" SRC="http://www.fnal.gov/docs/products/conv2html/LaTeX2HTML_icons/previous_motif.gif">   <BR>
+<P><ADDRESS>
+<I>Marc Mengel <BR>
+Wed Dec  3 12:05:20 CST 1997</I>
+</ADDRESS>
+</BODY>
+</HTML>
