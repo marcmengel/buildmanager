@@ -108,13 +108,20 @@ proc updatehostwindows { w } {
 }
 
 proc login_host { s host {depth  0}} {
-    global logname password expect_out
+    global logname password expect_out timeout
 
+    set timeout 60
     set spawn_id $s
-    expect -re {.*:} 
-    update_bytes
-    #exp_send "\r"
-    expect ogin:    
+    set count 0
+    expect { 
+		-re {: $}    {}
+		timeout	 {
+			exp_send "\r"; 
+			incr count
+			if {$count < 3} exp_continue
+		}
+
+    }
     update_bytes
     exp_send "$logname\r"
     expect word:    
@@ -234,6 +241,7 @@ proc login_phase3 { s host } {
 proc set_everything_state { win state } {
     if { [winfo class $win] != "Text" } {
         catch {$win configure -state $state}
+	catch {$win flash}
     }
     foreach kid [winfo children $win] {
 	set_everything_state $kid $state
@@ -251,7 +259,7 @@ proc loginsessions  { newsessions } {
     #
     foreach phase {host phase2 phase3} {
 	foreach s $newsessions {
-	    if { [lsearch -exact  $sessionlist $s] > 0 } {
+	    if { [lsearch -exact  $sessionlist $s] > -1 } {
 	        setstatus $s Login
 	        if { [catch {login_$phase $s $sw_dat(s2h,$s)} ] } {
 		    drop_session $s;
@@ -445,7 +453,9 @@ proc init {} {
 
     updateflavorbuttons .flavors .hosts.f
     getlogininfo "Initial login"
+    update
     updatehostwindows .hosts.f
+    update
 }
 
 proc expect_loop {} {
@@ -475,7 +485,7 @@ proc expect_loop {} {
 	    }
 	    if { ![info exists pending2($s)] || ![regexp -- {-make-} $pending2($s)]} {
 	        update_state "$cmd-$target"
-	        set pending2($s) "update_state \"$cmd-$target-OK\""
+	        set pending2($s) "setstate \"$cmd-$target-OK\""
 	    } else {
 		update_bytes
 	    }

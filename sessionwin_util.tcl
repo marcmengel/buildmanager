@@ -168,6 +168,17 @@ proc sessionwin { w host } {
     global sw_dat sessionlist
     global spawn_id
 
+    spawn telnet $host
+    set sw_dat(w2w,$w) $w
+    set sw_dat(w2w,$w.v.t) $w
+    set sw_dat(w2s,$w) $spawn_id
+    set sw_dat(s2h,$spawn_id) $host
+    set sw_dat(s2w,$spawn_id) $w
+    set sw_dat(state,$spawn_id) {Init}
+    set sw_dat(status,$spawn_id) {Init}
+
+    lappend sessionlist $spawn_id
+
     sessionwin_gui $w
 
     set sw_dat(sent_buf,$w) {}
@@ -182,16 +193,6 @@ proc sessionwin { w host } {
     $w.l1 configure -text "Init"
     $w.l2 configure -text "$host"
 
-    spawn telnet $host
-    set sw_dat(w2w,$w) $w
-    set sw_dat(w2w,$w.v.t) $w
-    set sw_dat(w2s,$w) $spawn_id
-    set sw_dat(s2h,$spawn_id) $host
-    set sw_dat(s2w,$spawn_id) $w
-    set sw_dat(state,$spawn_id) {Init}
-    set sw_dat(status,$spawn_id) {Init}
-
-    lappend sessionlist $spawn_id
 }
 
 

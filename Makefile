@@ -69,6 +69,9 @@ VERSIONFILES=Makefile README
 # "all" should probably depend on the product directory being set.
 
 all: proddir_is_set
+	chmod -R a+r .
+	chmod -R g+w .
+	chmod 775 buildmanager
 
 clean: 					 # clean up unneeded files	#
 
