@@ -4,7 +4,8 @@ proc cmd_substitute {string s} {
     global os_dat sw_dat
 
     set result $string
-    set productroot [productroot $os_dat(s2f,$s)]
+    set productroot [get_productroot $s]
+
     set dirname [file dirname $productroot]
     set tail [file tail $productroot]
     regsub -all {%%} $result {_%%_} result

@@ -20,6 +20,10 @@ catch "$w.m13.m add command "
  $w.m13.m entryconfigure 1 -command "unset configured($w.v6.t); destroy $w" -label "Dismiss" -underline "0"
 catch "$w.m13.m add command "
  $w.m13.m entryconfigure 2 -command "change_hosts $w.v6.t" -label "Update" -underline "0"
+catch "$w.m13.m add command "
+ $w.m13.m entryconfigure 3 -command "load_hosts \[tk_getOpenFile\] $w.v6.t" -label "Load" -underline "0"
+catch "$w.m13.m add command "
+ $w.m13.m entryconfigure 4 -command "save_hosts \[tk_getSaveFile\] $w.v6.t" -label "Save" -underline "0"
 
 
 

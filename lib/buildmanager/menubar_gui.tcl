@@ -44,7 +44,7 @@ if {![winfo exists $w.m6]} {menubutton $w.m6}
 if {![winfo exists $w.m6.m]} {menu $w.m6.m}
 catch "$w.m6.m add tearoff "
 catch "$w.m6.m add command "
- $w.m6.m entryconfigure 1 -command "set connect_command /usr/local/bin/rsh" -label "/usr/local/bin/rsh"
+ $w.m6.m entryconfigure 1 -command "set connect_command /usr/krb5/bin/rsh" -label "/usr/local/bin/rsh"
 catch "$w.m6.m add command "
  $w.m6.m entryconfigure 2 -command "set connect_command /usr/local/bin/ssh" -label "/usr/local/bin/ssh"
 catch "$w.m6.m add command "
