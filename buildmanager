@@ -113,7 +113,7 @@ proc login_host { s host {depth  0}} {
     set spawn_id $s
     expect -re {.*:} 
     update_bytes
-    # exp_send "\r"
+    #exp_send "\r"
     expect ogin:    
     update_bytes
     exp_send "$logname\r"
@@ -251,9 +251,11 @@ proc loginsessions  { newsessions } {
     #
     foreach phase {host phase2 phase3} {
 	foreach s $newsessions {
-	    setstatus $s Login
-	    if { [catch {login_$phase $s $sw_dat(s2h,$s)} ] } {
-		drop_session $s;
+	    if { [lsearch -exact  $sessionlist $s] > 0 } {
+	        setstatus $s Login
+	        if { [catch {login_$phase $s $sw_dat(s2h,$s)} ] } {
+		    drop_session $s;
+		}
 	    }
 	}
     }
@@ -286,6 +288,7 @@ proc update_status { status} {
 proc drop_session { s } {
     global sessionlist sw_dat os_dat
 
+    sleep 1
     set w $sw_dat(s2w,$s)
     set flavor $os_dat(w2f,$w)
     set os_dat(do,$flavor) 0
