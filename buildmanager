@@ -504,7 +504,11 @@ proc expect_loop {} {
 	    if { [info exists pending2($s)] } {
 		set state $sw_dat(state,$s)
 		setstatus $s Question
-	        update_state "${state}-Question"
+		if [regexp {(.*-Question-)([0-9]+)$} $state match pre num] {
+		    update_state "${pre}[expr $num + 1]"
+		} else {
+		    update_state "${state}-Question-1"
+		}
 	    } else {
 	        update_status Question
 	    }
