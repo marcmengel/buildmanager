@@ -1,7 +1,7 @@
 #!/usr/bin/env expectk
 
 
-set connect_command /usr/local/bin/rsh
+set connect_command /usr/krb5/bin/rsh
 
 set hwcount 0
 set sessionlist {}
