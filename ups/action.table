@@ -1,0 +1,66 @@
+FILE=TABLE
+PRODUCT=buildmanager
+
+Group:
+  Flavor=NULL
+  Qualifiers=""
+
+  Flavor=AIX
+  Qualifiers=""
+
+  Flavor=AIX+3
+  Qualifiers=""
+
+  Flavor=AIX+4
+  Qualifiers=""
+
+  Flavor=IRIX
+  Qualifiers=""
+
+  Flavor=IRIX+5
+  Qualifiers=""
+
+  Flavor=IRIX+6
+  Qualifiers=""
+
+  Flavor=OSF1
+  Qualifiers=""
+
+  Flavor=OSF1+V3
+  Qualifiers=""
+
+  Flavor=OSF1+V4
+  Qualifiers=""
+
+  Flavor=SunOS
+  Qualifiers=""
+
+  Flavor=SunOS+5
+  Qualifiers=""
+
+  Flavor=Linux
+  Qualifiers=""
+
+  Flavor=Linux+2
+  Qualifiers=""
+
+Common:
+  Action=Setup
+    envSet(BUILDMANAGER_DIR, ${UPS_PROD_DIR})
+    envPrepend(PATH, ${UPS_PROD_DIR}/bin)
+    setupRequired("expect v5_21")
+
+  Action=UnSetup
+    envUnset(BUILDMANAGER_DIR)
+    envRemove(PATH, ${UPS_PROD_DIR}/bin, ':')
+    unsetupRequired("expect")
+
+  Action=Current
+
+  Action=UnCurrent
+
+  Action=Configure
+
+  Action=UnConfigure
+END:
+
