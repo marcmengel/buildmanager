@@ -1,4 +1,4 @@
-#!/bin/env expectk
+#!/usr/bin/env expectk
 
 
 set hwcount 0

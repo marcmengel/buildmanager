@@ -21,6 +21,7 @@ proc cmd_substitute {string s} {
 
 proc cmd_parallel { string {list {}} } {
     global sessionlist os_dat global history histslot
+    global out_of_the_loop
 
     .cmd.e delete 0 end
     .cmd.e insert 0 $string
@@ -29,8 +30,10 @@ proc cmd_parallel { string {list {}} } {
 	set list $sessionlist
     }
     foreach s $list {
-	set result [cmd_substitute $string $s]
-	exp_send -i $s "$result\r"
+        if { ![info exists out_of_the_loop($s)] || !$out_of_the_loop($s)} {
+	    set result [cmd_substitute $string $s]
+	    exp_send -i $s "$result\r"
+	}
     }
     lappend history $string
     set histslot [llength $history]
@@ -53,6 +56,13 @@ proc cmd_taketurns { string {list {xxxxxxxxxx}} } {
 	set list $sessionlist
     }
     set s [lindex $list 0]
+    while {[info exists out_of_the_loop($s)] && $out_of_the_loop($s)} {
+	set list [lrange $list 1 end]
+        set s [lindex $list 0]
+        if { "$list" == "" } {
+ 	    return
+        }
+    }
     set list [lrange $list 1 end]
     set pending1($s) [list cmd_taketurns $string $list]
     set result [cmd_substitute $string $s]

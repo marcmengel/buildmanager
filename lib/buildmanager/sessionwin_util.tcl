@@ -65,6 +65,18 @@ proc toggle_logging { w } {
      }
 }
 
+proc toggle_cmd { w } {
+     global sw_dat 
+     global out_of_the_loop
+
+     set s $sw_dat(w2s,$w)
+     if {[info exists out_of_the_loop($s)] && $out_of_the_loop($s) } {
+         set out_of_the_loop($s) 0
+     } else {
+         set out_of_the_loop($s) 1
+     }
+}
+
 proc start_logging { w logfile } {
      global sw_dat
 

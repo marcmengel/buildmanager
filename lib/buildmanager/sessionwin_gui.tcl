@@ -33,7 +33,13 @@ if {![winfo exists $w.b]} {button $w.b}
 # ---------------- Checkbutton $w.b2 --------------------
 if {![winfo exists $w.b2]} {checkbutton $w.b2}
 $w.b2 configure -text "Log" -command "toggle_logging $w" \
-		    -selectcolor green
+		    -selectcolor green -variable "$w.b2.var"
+
+# ---------------- Checkbutton $w.b3 --------------------
+if {![winfo exists $w.b3]} {checkbutton $w.b3}
+$w.b3 configure -text "Cmd" -command "toggle_cmd $w" \
+		    -selectcolor green -variable "$w.b3.var"
+$w.b3 select
 
 # ---------------- Frame  $w.v ---------------------
 if {![winfo exists $w.v]} {frame $w.v}
@@ -60,6 +66,7 @@ pack configure $w.l2 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 
 pack configure $w.l3 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 pack configure $w.l4 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side top
 pack configure $w.b2 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
+pack configure $w.b3 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
 pack configure $w.b -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side right
 # ----------------- Bindings ---------------------------
 }
