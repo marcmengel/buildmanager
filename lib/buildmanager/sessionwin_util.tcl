@@ -175,11 +175,14 @@ proc InitExpectText {} {
     bind ExpectText <F12>		{sendchars %W "\x1b\[31~" }
 }
 
+set connect_command /usr/local/bin/rsh
+
 proc sessionwin { w host } {
     global sw_dat sessionlist
     global spawn_id
+    global connect_command
 
-    spawn ssh $host
+    spawn $connect_command $host
     set sw_dat(w2w,$w) $w
     set sw_dat(w2w,$w.v.t) $w
     set sw_dat(w2s,$w) $spawn_id

@@ -12,6 +12,8 @@ if {![winfo exists $w.m4]} {menubutton $w.m4}
 if {![winfo exists $w.m4.m]} {menu $w.m4.m}
 catch "$w.m4.m add tearoff "
 
+
+
 # ---------------- Menubutton  $w.m5 ---------------------
 if {![winfo exists $w.m5]} {menubutton $w.m5}
  $w.m5 configure -menu "$w.m5.m" -padx "6" -pady "5" -text "Edit"
@@ -19,20 +21,45 @@ if {![winfo exists $w.m5]} {menubutton $w.m5}
 # ---------------- Menu  $w.m5.m ---------------------
 if {![winfo exists $w.m5.m]} {menu $w.m5.m}
 catch "$w.m5.m add tearoff "
+catch "$w.m5.m add command "
+ $w.m5.m entryconfigure 1 -command "edit_hosts" -label "Hostlist"
 
-catch "$w.m5.m add command -label Hostlist -command edit_hosts"
 
 
 # ---------------- Button  $w.b6 ---------------------
 if {![winfo exists $w.b6]} {button $w.b6}
- $w.b6 configure -padx "13" -pady "4" -text "Help..." -command {
-	 source "${dir}/lib/buildmanager/mgui_help.tcl"
- }
+ $w.b6 configure -command "
+	 source \"\${dir}/lib/buildmanager/mgui_help.tcl\"
+ " -padx "13" -pady "4" -text "Help..."
+
+# ---------------- Label -----------------------------
+label $w.l4 -text "Connect:"
+
+# ---------------- Menubutton  $w.m6 ---------------------
+if {![winfo exists $w.m6]} {menubutton $w.m6}
+ $w.m6 configure -menu "$w.m6.m" -padx "6" -pady "4" -text "/usr/local/bin/telnet" -textvariable "connect_command"
+
+# ---------------- Menu  $w.m6.m ---------------------
+if {![winfo exists $w.m6.m]} {menu $w.m6.m}
+catch "$w.m6.m add tearoff "
+catch "$w.m6.m add command "
+ $w.m6.m entryconfigure 1 -command "set connect_command /usr/local/bin/rsh" -label "/usr/local/bin/rsh"
+catch "$w.m6.m add command "
+ $w.m6.m entryconfigure 2 -command "set connect_command /usr/local/bin/ssh" -label "/usr/local/bin/ssh"
+catch "$w.m6.m add command "
+ $w.m6.m entryconfigure 3 -command "set connect_command /usr/bin/rsh" -label "/usr/bin/rsh"
+catch "$w.m6.m add command "
+ $w.m6.m entryconfigure 4 -command "set connect_command /usr/bin/telnet" -label "/usr/bin/telnet"
+catch "$w.m6.m add command "
+ $w.m6.m entryconfigure 5 -command "set connect_command /usr/afsws/bin/rsh" -label "/usr/afsws/bin/rsh"
 
 
 
-pack $w.b6 -side right -expand 0
-pack $w.m4 -side left -expand 0
-pack $w.m5 -side left -expand 0
+
+pack configure $w.b6 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side right
+pack configure $w.m4 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
+pack configure $w.m5 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
+pack configure $w.l4 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
+pack configure $w.m6 -in $w -anchor center -expand 0 -fill none -ipadx 0 -ipady 0 -padx 0 -pady 0 -side left
 # ----------------- Bindings ---------------------------
 }

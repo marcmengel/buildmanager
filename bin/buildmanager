@@ -6,6 +6,8 @@ set sessionlist {}
 set loginok 0
 set bwcount 0
 
+set logname $env(USER)
+
 proc updateflavorbuttons { w w2 } {
     global host_dat bwcount
 
