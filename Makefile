@@ -28,7 +28,7 @@ DIR=`pwd | sed	-e 's|^/tmp_mnt||' \
 # this section may change in later ups|addproduct incarnations
             PROD=buildmanager
      PRODUCT_DIR=BUILDMANAGER_DIR
-            VERS=v1_0
+            VERS=v1_1
           DEPEND=-u "< expect v5_21 $(FLAVOR)"
            CHAIN=development
       UPS_SUBDIR=ups
