@@ -11,6 +11,7 @@ source ${dir}/menubar_gui.tcl
 source ${dir}/customcmd_gui.tcl
 source ${dir}/passwd_popup.tcl
 source ${dir}/menu_util.tcl
+source ${dir}/html_text.tcl
 
 set loginok 0
 proc getlogininfo { reason } {
@@ -316,6 +317,7 @@ proc cmd_parallel { string {list {}} } {
 
     .cmd.e delete 0 end
     .cmd.e insert 0 $string
+    .cmd.e selection range 0 end
     if { "$list" == "" } {
 	set list $sessionlist
     }
@@ -333,6 +335,7 @@ proc cmd_taketurns { string {list {xxxxxxxxxx}} } {
 
     .cmd.e delete 0 end
     .cmd.e insert 0 $string
+    .cmd.e selection range 0 end
     if { "$list" == "" } {
         lappend history $string
         set histslot [llength $history]

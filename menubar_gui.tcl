@@ -24,7 +24,10 @@ catch "$w.m5.m add tearoff "
 
 # ---------------- Button  $w.b6 ---------------------
 if {![winfo exists $w.b6]} {button $w.b6}
- $w.b6 configure -padx "13" -pady "4" -text "Help..."
+ $w.b6 configure -padx "13" -pady "4" -text "Help..." -command {
+	 source "${dir}/mgui_help.tcl"
+ }
+
 
 
 pack $w.b6 -side right
