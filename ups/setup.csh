@@ -1,4 +1,3 @@
 
-setenv PATH "${BUILDMANAGER_DIR}:${PATH}"
+setenv PATH "${BUILDMANAGER_DIR}/bin:${PATH}"
 
-# ${BUILDMANAGER_DIR}/ups/check_configure

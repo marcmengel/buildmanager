@@ -9,11 +9,11 @@ Common:
   Action=Setup
     setupRequired("expect v5_21")
     envSet(BUILDMANAGER_DIR, ${UPS_PROD_DIR})
-    envPrepend(PATH, ${UPS_PROD_DIR})
+    envPrepend(PATH, ${UPS_PROD_DIR}/bin)
 
   Action=UnSetup
     envUnset(BUILDMANAGER_DIR)
-    envRemove(PATH, ${UPS_PROD_DIR})
+    envRemove(PATH, ${UPS_PROD_DIR}/bin)
     unsetupRequired("expect")
 
   Action=Current

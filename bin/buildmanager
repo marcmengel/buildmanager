@@ -1,0 +1,258 @@
+#!/bin/env expectk
+
+
+set hwcount 0
+set sessionlist {}
+set loginok 0
+set bwcount 0
+
+proc updateflavorbuttons { w w2 } {
+    global os_dat bwcount
+
+    foreach flavor $os_dat(LIST) {
+        incr bwcount
+        set bw $w.b_$bwcount
+
+        if { ![info exists os_dat(f2bw,$flavor)] } {
+	    checkbutton $bw -text "$flavor" \
+		    -variable "os_dat(do,$flavor)" \
+		    -command "updatehostwindows $w2" \
+		    -selectcolor green
+	    pack $bw -side left
+	    set os_dat(f2bw,$flavor) $bw
+	}
+    }
+}
+
+proc updatehostwindows { w } {
+    global os_dat sw_dat
+    global hwcount
+    global loginok
+
+    # skip if we don't have passwords, etc. yet
+
+    if { ! $loginok } {
+	return
+    }
+    set newsessions {}
+
+    foreach flavor $os_dat(LIST) {
+        incr hwcount
+	set hw $w.h_$hwcount
+
+	# if we should be doing this flavor, but arent, add a window
+	# for it
+
+	if { $os_dat(do,$flavor) && ![info exists os_dat(f2w,$flavor)]} {
+	    set h $os_dat(HOST,$flavor)
+	    set os_dat(f2w,$flavor) $hw
+	    set os_dat(w2f,$hw) $flavor
+
+	    sessionwin $hw $h
+	    pack $hw -expand 1 -fill both -side bottom
+
+	    set s $sw_dat(w2s,$hw)
+    	    set os_dat(s2f,$s) $flavor
+	    $hw.l4 configure -text "$flavor"
+	    lappend newsessions $s
+	}
+
+	# if we are doing this flavor, but shoudn't be anymore,
+	# drop the session
+
+	if { !$os_dat(do,$flavor) && [info exists os_dat(f2w,$flavor)]} {
+	    drop_session $sw_dat(w2s,$os_dat(f2w,$flavor))
+	}
+    }
+
+    # log in any new sessions
+
+    newloginsessions $newsessions
+}
+
+proc drop_session { s } {
+    global sessionlist sw_dat os_dat
+
+    set w $sw_dat(s2w,$s)
+    set flavor $os_dat(w2f,$w)
+    set os_dat(do,$flavor) 0
+    unset os_dat(w2f,$w)
+    unset os_dat(f2w,$flavor)
+    catch "destroy $w"
+    set index [lsearch -exact $sessionlist $s]
+    set sessionlist [lreplace $sessionlist $index $index]
+    return [llength $sessionlist]
+}
+
+# ----------------------------------------------------------------------
+# mainline...
+# ----------------------------------------------------------------------
+
+proc init {} {
+    global argv env spawn_id history histslot expect_out pending pending2
+    global os_dat sw_dat
+    global promptre product version 
+    global debug_state
+       
+    if { [lindex $argv 0] == "-debug_state" } {
+	set argv [lrange $argv 1 end]
+	set debug_state 1
+    } else {
+	set debug_state 0
+    }
+    if { [lindex $argv 0] == "-verbose" } {
+	set argv [lrange $argv 1 end]
+    } else {
+	log_user 0
+    }
+
+    getconfiginfo
+
+    if { [llength $argv ] > 0} {
+	set product [lindex $argv 0]
+    } 
+    if { [llength $argv ] > 1} {
+	set version [lindex $argv 1]
+    }
+    # puts "product $product version $version"
+
+    set history {}
+    set histslot 0
+
+    menubar_gui .menubar
+    fill_in_cmd_menu .menubar
+    customcmd_gui .cmd
+    frame .flavors
+    vscrollframe .hosts
+
+    pack .menubar .cmd .flavors -side top -expand 0 -fill x
+    pack .hosts -side top -expand 1 -fill both
+
+    updateflavorbuttons .flavors .hosts.f
+    getlogininfo "Initial login"
+    update
+    updatehostwindows .hosts.f
+    update
+}
+
+proc expect_loop {} {
+    global argv env spawn_id history histslot expect_out pending pending2
+    global os_dat sw_dat
+    global promptre cmdstartre cmdfailre cmdnevermindre questionre
+    global sessionlist
+    global debug_state
+
+    expect {
+	-i sessionlist -re $cmdstartre { 
+	    set s $expect_out(spawn_id)
+
+	    if $debug_state {
+	        puts "saw command start string:"
+		puts "$expect_out(0,string)"
+	    }
+
+	    set cmd  $expect_out(1,string)
+	    set args $expect_out(2,string)
+
+	    if { [ regexp { ([^- =]+) } $args match first ] } {
+		 # if we have an argument with no dashes or equals...
+		 set target $first
+	    } else {
+		 set target "all"
+	    }
+	    if { ![info exists pending2($s)] || ![regexp -- {-make-} $pending2($s)]} {
+	        update_state "$cmd-$target"
+	        set pending2($s) "setstate \"$cmd-$target-OK\""
+	    } else {
+		update_bytes
+	    }
+	    exp_continue
+	}
+	-i sessionlist -re $cmdfailre {
+	    set s $expect_out(spawn_id)
+	    if { [info exists pending2($s)] } {
+		if $debug_state {
+		    puts "I think $pending2($s) failed because I saw:"
+		    puts "$expect_out(0,string)"
+		}
+	        regsub -- {-OK} $pending2($s) {-Failed} pending2($s)
+	    }
+	    update_bytes
+	    exp_continue
+	}
+	-i sessionlist -re $cmdnevermindre {
+	    set s $expect_out(spawn_id)
+	    if { [info exists pending2($s)] } {
+		if $debug_state {
+		    puts "I think $pending2($s) succeeded after all because I saw:"
+		    puts "$expect_out(0,string)"
+		}
+	        regsub -- {-Failed} $pending2($s) {-OK} pending2($s)
+	    }
+	    update_bytes
+	    exp_continue
+	}
+	-i sessionlist -re $questionre {
+	    set s $expect_out(spawn_id)
+	    if { [info exists pending2($s)] } {
+		set state $sw_dat(state,$s)
+		setstatus $s Question
+		if [regexp {(.*-Question-)([0-9]+)$} $state match pre num] {
+		    update_state "${pre}[expr $num + 1]"
+		} else {
+		    update_state "${state}-Question-1"
+		}
+	    } else {
+	        update_status Question
+	    }
+	    exp_continue
+	}
+	-i sessionlist -re $promptre {
+	    update_status Ready
+	    exp_continue
+	}
+	-i sessionlist -re "\[\r\n\]+" {
+	    update_status Running
+	    exp_continue
+	}
+	-i sessionlist -re "\[^\r\n\]+" { 
+	    update_bytes
+	    exp_continue
+	}
+	-i sessionlist timeout {
+	    flush_sent $sw_dat(s2w,$expect_out(spawn_id))
+	    flush_rcvd $sw_dat(s2w,$expect_out(spawn_id))
+	    exp_continue
+	}
+	-i sessionlist eof {
+	    if [drop_session $expect_out(spawn_id)] exp_continue
+	}
+    }
+}
+
+proc main {} {
+    global env
+    global dir
+    global auto_path
+
+    if { [info exists env(BUILDMANAGER_DIR)] } {
+	 set dir $env(BUILDMANAGER_DIR)
+    } else {
+	 set dir .
+    }
+    source ${dir}/lib/buildmanager/passwd_popup.tcl
+    
+    lappend auto_path ${dir}/lib/buildmanager
+    # make backspace and delete identical in entry widgets
+    # make Control-U delete from here to front
+    bind Entry <Delete> [bind Entry <BackSpace>]
+    bind Entry <Control-U> {%w delete 0 insert}
+    init 
+    while [ catch expect_loop result] {
+	update
+	error_dialog expect_loop $result 
+    }
+    exit
+}
+
+main

@@ -1,4 +1,3 @@
 
-PATH="${BUILDMANAGER_DIR}:${PATH}"; export PATH
+PATH="${BUILDMANAGER_DIR}/bin:${PATH}"; export PATH
 
-# ${BUILDMANAGER_DIR}/ups/check_configure

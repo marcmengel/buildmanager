@@ -23,7 +23,7 @@ if {![winfo exists $w.l4]} {label $w.l4}
 
 # ---------------- Button $w.b --------------------
 if {![winfo exists $w.b]} {button $w.b}
- $w.b configure -bitmap "@${dir}/winsize.xbm" -command "\
+ $w.b configure -bitmap "@${dir}/lib/bitmaps/winsize.xbm" -command "\
      set h \[$w.v.t cget -height\] ;\
      if { \$h < 24 } {set h 24} else {set h 5} ;\
      $w.v.t configure -height \$h ;\
