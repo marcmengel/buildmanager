@@ -108,6 +108,7 @@ proc cmd_return_takesturns {} {
     proc do_cmd_bindings { w } {
     bind $w.e <Key-Return> {cmd_taketurns [%W get]}
     bind $w.e <Key-KP_Enter> {cmd_parallel [%W get]}
+    bind $w.e <Key-Shift-Return> {cmd_parallel [%W get]}
     }
 }
 
