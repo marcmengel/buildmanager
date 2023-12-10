@@ -10,6 +10,7 @@ proc vt100init { t } {
 
 set vt100_mtags(0) {}
 set vt100_mtags(1) bold
+set vt100_mtags(01) bold
 set vt100_mtags(2) bold
 set vt100_mtags(3) bold
 set vt100_mtags(4) bold
@@ -17,6 +18,16 @@ set vt100_mtags(5) bold
 set vt100_mtags(6) rev
 set vt100_mtags(7) rev
 set vt100_mtags(8) rev
+set vt100_mtags(01) bold
+set vt100_mtags(02) bold
+set vt100_mtags(03) bold
+set vt100_mtags(04) bold
+set vt100_mtags(31) rev
+set vt100_mtags(32) rev
+set vt100_mtags(33) bold
+set vt100_mtags(32) bold
+set vt100_mtags(34) bold
+set vt100_mtags(100) bold
 set vt100seenew 1
 
 

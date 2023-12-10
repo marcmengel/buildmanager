@@ -1,7 +1,10 @@
-#!/usr/bin/env expectk
+#!/usr/bin/env tclsh
+
+package require Expect
+package require Tk
 
 
-set connect_command /usr/krb5/bin/ssh
+set connect_command /usr/bin/ssh
 
 set hwcount 0
 set sessionlist {}

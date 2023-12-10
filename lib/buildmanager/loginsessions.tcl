@@ -1,7 +1,7 @@
 
 proc set_everything_state { win state } {
     if { [winfo class $win] != "Text" } {
-        catch {$win configure -state $state} 
+        catch {$win configure -state $state} status
 	catch {$win configure -foreground [$win cget -foreground]} 
     }
     foreach kid [winfo children $win] {
@@ -37,10 +37,10 @@ proc newloginsessions { newsessions } {
 	# lappend cmdlist($s) "exec /bin/sh"
 	# lappend cmdlist($s) "PS1='<$sw_dat(s2h,$s)> '"
 
-	lappend cmdlist($s) {test "$UPS_SHELL" = "sh" && eval 'bm_setenv() { eval $1=\"$2\"; export $1; }'}
-	lappend cmdlist($s) {test "$UPS_SHELL" = "sh" && eval 'bm_alias() { eval "$1(){ $2 \"\$@\"; }"; }'}
-	lappend cmdlist($s) {test "$UPS_SHELL" = "csh" && eval 'alias bm_setenv setenv'}
-	lappend cmdlist($s) {test "$UPS_SHELL" = "csh" && eval 'alias bm_alias alias'}
+	lappend cmdlist($s) {test "$SHELL" = "/bin/bash" && eval 'bm_setenv() { eval $1=\"$2\"; export $1; }'}
+	lappend cmdlist($s) {test "$SHELL" = "/bin/bash" && eval 'bm_alias() { eval "$1(){ $2 \"\$@\"; }"; }'}
+	lappend cmdlist($s) {test "$SHELL" = "/bin/tcsh" && eval 'alias bm_setenv setenv'}
+	lappend cmdlist($s) {test "$SHELL" = "/bin/tcsh" && eval 'alias bm_alias alias'}
 	if {[info exists os_dat(PLAT_COMMANDS,$flavor)]} {
 	    foreach cmd $os_dat(PLAT_COMMANDS,$flavor) {
 		lappend cmdlist($s) $cmd
@@ -211,7 +211,8 @@ proc newloginsessions { newsessions } {
 	    }
 	}
     }
-    set_everything_state . enabled
+    set_everything_state . active
+    set_everything_state . normal
 }
 
 proc getlogininfo { reason } {
